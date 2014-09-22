@@ -1,27 +1,32 @@
 %global debug_package %{nil}
+%global import_path     github.com/coreos/etcd
+%global gopath          %{_datadir}/gocode
 
 Name:		etcd
-Version:	0.1.2
-Release:	7%{?dist}
+Version:	0.4.6
+Release:	4%{?dist}
 Summary:	A highly-available key value store for shared configuration
 
 License:	ASL 2.0
 URL:		https://github.com/coreos/etcd/
-Source0:	https://github.com/coreos/%{name}/archive/v%{version}/%{name}-v%{version}.tar.gz
+Source0:	https://github.com/coreos/%{name}/archive/v%{version}/%{name}-%{version}.tar.gz
 Source1:	etcd.service
-Source2:	etcd.socket
-Patch1:		etcd-0001-feat-activation-add-socket-activation.patch
-Patch2:		etcd-0002-Switch-to-goraft-raft.patch
+Source2:	etcd.conf
+Patch0:         0001-De-bundle-third_party.patch
 
 BuildRequires:	golang
 BuildRequires:	golang(code.google.com/p/go.net)
-BuildRequires:	golang(code.google.com/p/goprotobuf)
+BuildRequires:	golang(code.google.com/p/gogoprotobuf)
+BuildRequires:	golang(github.com/BurntSushi/toml)
+BuildRequires:	golang(github.com/gorilla/mux)
+BuildRequires:	golang(github.com/mreiferson/go-httpclient)
 BuildRequires:	golang(bitbucket.org/kardianos/osext)
 BuildRequires:	golang(github.com/coreos/go-log/log)
 BuildRequires:	golang(github.com/coreos/go-systemd)
-BuildRequires:	golang(github.com/goraft/raft)
+BuildRequires:	golang(github.com/rcrowley/go-metrics)
 BuildRequires:	systemd
 
+Requires(pre):	shadow-utils
 Requires(post): systemd
 Requires(preun): systemd
 Requires(postun): systemd
@@ -29,29 +34,79 @@ Requires(postun): systemd
 %description
 A highly-available key value store for shared configuration.
 
+%package devel
+BuildRequires:  golang
+BuildRequires:  golang(code.google.com/p/go.net)
+BuildRequires:  golang(code.google.com/p/gogoprotobuf)
+BuildRequires:  golang(github.com/BurntSushi/toml)
+BuildRequires:  golang(github.com/gorilla/mux)
+BuildRequires:  golang(github.com/mreiferson/go-httpclient)
+BuildRequires:  golang(bitbucket.org/kardianos/osext)
+BuildRequires:  golang(github.com/coreos/go-log/log)
+BuildRequires:  golang(github.com/coreos/go-systemd)
+BuildRequires:  golang(github.com/rcrowley/go-metrics)
+Requires:       golang
+Summary:        etcd golang devel libraries
+Provides:       golang(%{import_path}) = %{version}-%{release}
+
+%description devel
+golang development libraries for etcd, a highly-available key value store for
+shared configuration.
+
 %prep
-%setup -q
+%setup -q -n %{name}-%{version}
+%patch0 -p1
 echo "package main
 const releaseVersion = \"%{version}\"" > release_version.go
-%patch1 -p1 -b .systemd-activation
-%patch2 -p1 -b .switch_to_goraft_raft
-# Remove all 3rd party libs (we're using system-wide ones)
+
+# etcd has its own fork of the client API
+mkdir tmp
+mv third_party/github.com/coreos/go-etcd tmp
+# And a raft fork: https://bugzilla.redhat.com/show_bug.cgi?id=1047194#c12
+mv third_party/github.com/goraft tmp
+
+# Nuke everything else though
 rm -rf third_party
+
+# And restore the third party bits we're keeping
+mkdir -p third_party/github.com/coreos/
+mv tmp/go-etcd third_party/github.com/coreos/
+mv tmp/goraft third_party/github.com/
+rmdir tmp
+
 # Make link for etcd itself
 mkdir -p src/github.com/coreos
 ln -s ../../../ src/github.com/coreos/etcd
 
 %build
-GOPATH="${PWD}:%{_datadir}/gocode" go build -v -x -o etcd
+GOPATH="${PWD}:%{_datadir}/gocode" go build -v -x -o etcd.bin
 
 %install
-install -D -p -m 0755 etcd %{buildroot}%{_bindir}/etcd
+install -d -m 0755 %{buildroot}%{_sysconfdir}/etcd
+install -m 644 -t %{buildroot}%{_sysconfdir}/etcd %{SOURCE2}
+install -D -p -m 0755 etcd.bin %{buildroot}%{_bindir}/etcd
 install -D -p -m 0644 %{SOURCE1} %{buildroot}%{_unitdir}/%{name}.service
-install -D -p -m 0644 %{SOURCE2} %{buildroot}%{_unitdir}/%{name}.socket
+
+# And create /var/lib/etcd
+install -d -m 0755 %{buildroot}%{_localstatedir}/lib/etcd
+
+# Install files for devel sub-package
+install -d %{buildroot}/%{gopath}/src/%{import_path}
+cp -av main.go %{buildroot}/%{gopath}/src/%{import_path}/
+cp -av go_version.go %{buildroot}/%{gopath}/src/%{import_path}/
+for dir in bench config discovery Documentation error etcd fixtures http log \
+           metrics mod pkg server store tests
+do
+    cp -av ${dir} %{buildroot}/%{gopath}/src/%{import_path}/
+done
 
 %check
 # empty for now
 
+%pre
+getent group etcd >/dev/null || groupadd -r etcd
+getent passwd etcd >/dev/null || useradd -r -g etcd -d %{_localstatedir}/lib/etcd \
+	-s /sbin/nologin -c "etcd user" etcd
 %post
 %systemd_post %{name}.service
 
@@ -62,14 +117,29 @@ install -D -p -m 0644 %{SOURCE2} %{buildroot}%{_unitdir}/%{name}.socket
 %systemd_postun %{name}.service
 
 %files
+%config(noreplace) %{_sysconfdir}/etcd
 %{_bindir}/etcd
+%dir %attr(-,etcd,etcd) %{_localstatedir}/lib/etcd
 %{_unitdir}/%{name}.service
-%{_unitdir}/%{name}.socket
 %doc LICENSE README.md Documentation/internal-protocol-versioning.md
 
+%files devel
+%doc LICENSE README.md Documentation/internal-protocol-versioning.md
+%dir %attr(755,root,root) %{gopath}/src/github.com/coreos
+%dir %attr(755,root,root) %{gopath}/src/%{import_path}
+%{gopath}/src/%{import_path}/*
+
 %changelog
-* Sat Aug 16 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.1.2-7
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_21_22_Mass_Rebuild
+* Mon Sep 22 2014 jchaloup <jchaloup@redhat.com> - 0.4.6-4
+- resolves: #1047194
+  Update to 0.4.6 from https://github.com/projectatomic/etcd-package
+
+* Tue Aug 19 2014 Adam Miller <maxamillion@fedoraproject.org> - 0.4.6-3
+- Add devel sub-package
+
+* Wed Aug 13 2014 Eric Paris <eparis@redhat.com> - 0.4.6-2
+- Bump to 0.4.6
+- run as etcd, not root
 
 * Sat Jun 07 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 0.1.2-6
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_21_Mass_Rebuild
