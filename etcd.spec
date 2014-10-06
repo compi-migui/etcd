@@ -4,7 +4,7 @@
 
 Name:		etcd
 Version:	0.4.6
-Release:	5%{?dist}
+Release:	6%{?dist}
 Summary:	A highly-available key value store for shared configuration
 
 License:	ASL 2.0
@@ -15,7 +15,6 @@ Source2:	etcd.conf
 Patch0:         0001-De-bundle-third_party.patch
 
 BuildRequires:	golang
-BuildRequires:	golang(code.google.com/p/go.net)
 BuildRequires:	golang(code.google.com/p/gogoprotobuf)
 BuildRequires:	golang(github.com/BurntSushi/toml)
 BuildRequires:	golang(github.com/gorilla/mux)
@@ -36,7 +35,6 @@ A highly-available key value store for shared configuration.
 
 %package devel
 BuildRequires:  golang
-BuildRequires:  golang(code.google.com/p/go.net)
 BuildRequires:  golang(code.google.com/p/gogoprotobuf)
 BuildRequires:  golang(github.com/BurntSushi/toml)
 BuildRequires:  golang(github.com/gorilla/mux)
@@ -130,6 +128,10 @@ getent passwd etcd >/dev/null || useradd -r -g etcd -d %{_localstatedir}/lib/etc
 %{gopath}/src/%{import_path}/*
 
 %changelog
+* Mon Oct 06 2014 jchaloup <jchaloup@redhat.com> - 0.4.6-6
+- related: #1047194
+  Remove dependency on go.net
+
 * Mon Oct 06 2014 jchaloup <jchaloup@redhat.com> - 0.4.6-5
 - Fix the .service file so it can launch!
   related: #1047194
