@@ -4,7 +4,7 @@
 
 Name:		etcd
 Version:	0.4.6
-Release:	6%{?dist}
+Release:	7%{?dist}
 Summary:	A highly-available key value store for shared configuration
 
 License:	ASL 2.0
@@ -46,6 +46,7 @@ BuildRequires:  golang(github.com/rcrowley/go-metrics)
 Requires:       golang
 Summary:        etcd golang devel libraries
 Provides:       golang(%{import_path}) = %{version}-%{release}
+ExclusiveArch:  %{ix86} x86_64 %{arm}
 
 %description devel
 golang development libraries for etcd, a highly-available key value store for
@@ -128,6 +129,9 @@ getent passwd etcd >/dev/null || useradd -r -g etcd -d %{_localstatedir}/lib/etc
 %{gopath}/src/%{import_path}/*
 
 %changelog
+* Fri Oct 17 2014 jchaloup <jchaloup@redhat.com> - 0.4.6-7
+- Add ExclusiveArch for go_arches
+
 * Mon Oct 06 2014 jchaloup <jchaloup@redhat.com> - 0.4.6-6
 - related: #1047194
   Remove dependency on go.net
