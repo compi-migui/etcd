@@ -4,7 +4,7 @@
 
 Name:		etcd
 Version:	0.4.6
-Release:	7%{?dist}
+Release:	8%{?dist}
 Summary:	A highly-available key value store for shared configuration
 
 License:	ASL 2.0
@@ -13,6 +13,7 @@ Source0:	https://github.com/coreos/%{name}/archive/v%{version}/%{name}-%{version
 Source1:	etcd.service
 Source2:	etcd.conf
 Patch0:         0001-De-bundle-third_party.patch
+ExclusiveArch:  %{ix86} x86_64 %{arm}
 
 BuildRequires:	golang
 BuildRequires:	golang(code.google.com/p/gogoprotobuf)
@@ -128,6 +129,9 @@ getent passwd etcd >/dev/null || useradd -r -g etcd -d %{_localstatedir}/lib/etc
 %{gopath}/src/%{import_path}/*
 
 %changelog
+* Fri Oct 17 2014 jchaloup <jchaloup@redhat.com> - 0.4.6-8
+- Add ExclusiveArch for go_arches
+
 * Wed Jan 21 2015 Eric Paris <eparis@redhat.com> - 0.4.6-7
 - default to /var/lib/etcd/default.etcd as 2.0 uses that default
 
