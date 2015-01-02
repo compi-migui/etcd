@@ -1,31 +1,35 @@
-%global debug_package %{nil}
-%global import_path     github.com/coreos/etcd
-%global gopath          %{_datadir}/gocode
+%global debug_package   %{nil}
+%global provider        github
+%global provider_tld    com
+%global project         coreos
+%global repo            etcd
 
-Name:		etcd
-Version:	0.4.6
-Release:	8%{?dist}
+%global import_path     %{provider}.%{provider_tld}/%{project}/%{repo}
+
+Name:		%{repo}
+Version:	2.0.0
+Release:	1.rc1%{?dist}
 Summary:	A highly-available key value store for shared configuration
-
 License:	ASL 2.0
-URL:		https://github.com/coreos/etcd/
-Source0:	https://github.com/coreos/%{name}/archive/v%{version}/%{name}-%{version}.tar.gz
-Source1:	etcd.service
-Source2:	etcd.conf
-Patch0:         0001-De-bundle-third_party.patch
+URL:		https://%{import_path}
+Source0:	https://%{import_path}/archive/v%{version}-rc.1.tar.gz
+Source1:	%{name}.service
+Source2:	%{name}.conf
 ExclusiveArch:  %{ix86} x86_64 %{arm}
 
-BuildRequires:	golang
+BuildRequires:	golang >= 1.3.3
+BuildRequires:	golang(bitbucket.org/kardianos/osext)
 BuildRequires:	golang(code.google.com/p/gogoprotobuf)
 BuildRequires:	golang(github.com/BurntSushi/toml)
-BuildRequires:	golang(github.com/gorilla/mux)
-BuildRequires:	golang(github.com/mreiferson/go-httpclient)
-BuildRequires:	golang(bitbucket.org/kardianos/osext)
+BuildRequires:	golang(github.com/codegangsta/cli)
+BuildRequires:	golang(github.com/coreos/go-etcd/etcd)
 BuildRequires:	golang(github.com/coreos/go-log/log)
 BuildRequires:	golang(github.com/coreos/go-systemd)
+BuildRequires:	golang(github.com/gorilla/mux)
+BuildRequires:	golang(github.com/mreiferson/go-httpclient)
 BuildRequires:	golang(github.com/rcrowley/go-metrics)
+BuildRequires:  golang(golang.org/x/net/context)
 BuildRequires:	systemd
-
 Requires(pre):	shadow-utils
 Requires(post): systemd
 Requires(preun): systemd
@@ -35,77 +39,111 @@ Requires(postun): systemd
 A highly-available key value store for shared configuration.
 
 %package devel
-BuildRequires:  golang
+BuildRequires:  golang >= 1.2.1-3
+BuildRequires:  golang(bitbucket.org/kardianos/osext)
 BuildRequires:  golang(code.google.com/p/gogoprotobuf)
 BuildRequires:  golang(github.com/BurntSushi/toml)
-BuildRequires:  golang(github.com/gorilla/mux)
-BuildRequires:  golang(github.com/mreiferson/go-httpclient)
-BuildRequires:  golang(bitbucket.org/kardianos/osext)
 BuildRequires:  golang(github.com/coreos/go-log/log)
 BuildRequires:  golang(github.com/coreos/go-systemd)
+BuildRequires:  golang(github.com/gorilla/mux)
+BuildRequires:  golang(github.com/mreiferson/go-httpclient)
 BuildRequires:  golang(github.com/rcrowley/go-metrics)
-Requires:       golang
-Summary:        etcd golang devel libraries
-Provides:       golang(%{import_path}) = %{version}-%{release}
+BuildRequires:  golang(github.com/stretchr/testify/assert)
+Requires:       golang >= 1.2.1-3
+Provides:   golang(%{import_path}) = %{version}-%{release}
+Provides:   golang(%{import_path}/client) = %{version}-%{release}
+Provides:   golang(%{import_path}/discovery) = %{version}-%{release}
+Provides:   golang(%{import_path}/error) = %{version}-%{release}
+Provides:   golang(%{import_path}/etcdmain) = %{version}-%{release}
+Provides:   golang(%{import_path}/etcdserver) = %{version}-%{release}
+Provides:   golang(%{import_path}/migrate) = %{version}-%{release}
+Provides:   golang(%{import_path}/pkg/cors) = %{version}-%{release}
+Provides:   golang(%{import_path}/pkg/crc) = %{version}-%{release}
+Provides:   golang(%{import_path}/pkg/fileutil) = %{version}-%{release}
+Provides:   golang(%{import_path}/pkg/flags) = %{version}-%{release}
+Provides:   golang(%{import_path}/pkg/ioutils) = %{version}-%{release}
+Provides:   golang(%{import_path}/pkg/pbutil) = %{version}-%{release}
+Provides:   golang(%{import_path}/pkg/testutil) = %{version}-%{release}
+Provides:   golang(%{import_path}/pkg/transport) = %{version}-%{release}
+Provides:   golang(%{import_path}/pkg/types) = %{version}-%{release}
+Provides:   golang(%{import_path}/pkg/wait) = %{version}-%{release}
+Provides:   golang(%{import_path}/proxy) = %{version}-%{release}
+Provides:   golang(%{import_path}/raft) = %{version}-%{release}
+Provides:   golang(%{import_path}/rafthttp) = %{version}-%{release}
+Provides:   golang(%{import_path}/snap) = %{version}-%{release}
+Provides:   golang(%{import_path}/store) = %{version}-%{release}
+Provides:   golang(%{import_path}/wal) = %{version}-%{release}
+Summary:    etcd golang devel libraries
 
 %description devel
 golang development libraries for etcd, a highly-available key value store for
 shared configuration.
 
 %prep
-%setup -q -n %{name}-%{version}
-%patch0 -p1
-echo "package main
-const releaseVersion = \"%{version}\"" > release_version.go
+%setup -qn %{name}-%{version}-rc.1
+rm -rf Godeps/_workspace/src/github.com/{codegangsta,coreos,stretchr}
+rm -rf Godeps/_workspace/src/{code.google.com,bitbucket.org}
 
-# etcd has its own fork of the client API
-mkdir tmp
-mv third_party/github.com/coreos/go-etcd tmp
-# And a raft fork: https://bugzilla.redhat.com/show_bug.cgi?id=1047194#c12
-mv third_party/github.com/goraft tmp
+find . -name "*.go" \
+       -print |\
+       xargs sed -i 's/github.com\/coreos\/etcd\/Godeps\/_workspace\/src\///g'
 
-# Nuke everything else though
-rm -rf third_party
-
-# And restore the third party bits we're keeping
-mkdir -p third_party/github.com/coreos/
-mv tmp/go-etcd third_party/github.com/coreos/
-mv tmp/goraft third_party/github.com/
-rmdir tmp
-
+%build
 # Make link for etcd itself
 mkdir -p src/github.com/coreos
 ln -s ../../../ src/github.com/coreos/etcd
 
-%build
-GOPATH="${PWD}:%{_datadir}/gocode" go build -v -x -o etcd.bin
+export GOPATH=%{gopath}:$(pwd):$(pwd)/Godeps/_workspace:$GOPATH
+go build -v -x -o bin/etcd %{import_path}
+go build -a -ldflags '-s' -o bin/etcdctl %{import_path}/etcdctl
+go build -v -x -o bin/etcd-migrate %{import_path}/migrate/cmd/%{name}-migrate
+
 
 %install
-install -d -m 0755 %{buildroot}%{_sysconfdir}/etcd
-install -m 644 -t %{buildroot}%{_sysconfdir}/etcd %{SOURCE2}
-install -D -p -m 0755 etcd.bin %{buildroot}%{_bindir}/etcd
+install -D -p -m 0755 bin/%{name} %{buildroot}%{_bindir}/%{name}
+install -D -p -m 0755 bin/%{name}ctl %{buildroot}%{_bindir}/%{name}ctl
+install -D -p -m 0755 bin/%{name}-migrate %{buildroot}%{_bindir}/%{name}-migrate
 install -D -p -m 0644 %{SOURCE1} %{buildroot}%{_unitdir}/%{name}.service
+install -D -p -m 0644 %{SOURCE2} %{buildroot}%{_sysconfdir}/%{name}
 
 # And create /var/lib/etcd
-install -d -m 0755 %{buildroot}%{_localstatedir}/lib/etcd
+install -d -m 0755 %{buildroot}%{_sharedstatedir}/%{name}
 
 # Install files for devel sub-package
 install -d %{buildroot}/%{gopath}/src/%{import_path}
-cp -av main.go %{buildroot}/%{gopath}/src/%{import_path}/
-cp -av go_version.go %{buildroot}/%{gopath}/src/%{import_path}/
-for dir in bench config discovery Documentation error etcd fixtures http log \
-           metrics mod pkg server store tests
+cp -pav main.go %{buildroot}/%{gopath}/src/%{import_path}/
+for dir in client discovery error etcdctl etcdmain etcdserver \
+        migrate pkg proxy raft rafthttp snap store version wal
 do
-    cp -av ${dir} %{buildroot}/%{gopath}/src/%{import_path}/
+    cp -rpav ${dir} %{buildroot}/%{gopath}/src/%{import_path}/
 done
 
 %check
-# empty for now
+export GOPATH=%{gopath}:%{buildroot}%{gopath}:$(pwd)/Godeps/_workspace
+go test %{import_path}/client
+go test %{import_path}/discovery
+go test %{import_path}/error
+go test %{import_path}/etcdmain
+go test %{import_path}/etcdserver
+go test %{import_path}/migrate
+#go test %{import_path}/pkg/fileutil
+go test %{import_path}/pkg/flags
+go test %{import_path}/pkg/ioutils
+go test %{import_path}/pkg/transport
+go test %{import_path}/pkg/types
+go test %{import_path}/pkg/wait
+go test %{import_path}/proxy
+go test %{import_path}/raft
+go test %{import_path}/rafthttp
+go test %{import_path}/snap
+go test %{import_path}/store
+go test %{import_path}/wal
 
 %pre
-getent group etcd >/dev/null || groupadd -r etcd
-getent passwd etcd >/dev/null || useradd -r -g etcd -d %{_localstatedir}/lib/etcd \
-	-s /sbin/nologin -c "etcd user" etcd
+getent group %{name} >/dev/null || groupadd -r %{name}
+getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/%{name} \
+	-s /sbin/nologin -c "etcd user" %{name}
+
 %post
 %systemd_post %{name}.service
 
@@ -116,19 +154,25 @@ getent passwd etcd >/dev/null || useradd -r -g etcd -d %{_localstatedir}/lib/etc
 %systemd_postun %{name}.service
 
 %files
-%config(noreplace) %{_sysconfdir}/etcd
-%{_bindir}/etcd
-%dir %attr(-,etcd,etcd) %{_localstatedir}/lib/etcd
+%config(noreplace) %{_sysconfdir}/%{name}
+%{_bindir}/%{name}
+%{_bindir}/%{name}ctl
+%{_bindir}/%{name}-migrate
+%dir %attr(-,%{name},%{name}) %{_sharedstatedir}/%{name}
 %{_unitdir}/%{name}.service
 %doc LICENSE README.md Documentation/internal-protocol-versioning.md
 
 %files devel
 %doc LICENSE README.md Documentation/internal-protocol-versioning.md
-%dir %attr(755,root,root) %{gopath}/src/github.com/coreos
-%dir %attr(755,root,root) %{gopath}/src/%{import_path}
-%{gopath}/src/%{import_path}/*
+%dir %{gopath}/src/%{provider}.%{provider_tld}/%{project}
+%{gopath}/src/%{import_path}
 
 %changelog
+* Tue Dec 23 2014 Lokesh Mandvekar <lsm5@fedoraproject.org> - 2.0.0-1.rc1
+- Resolves: rhbz#1176138 - update to v2.0.0-rc1
+- do not redefine gopath
+- use jonboulle/clockwork from within Godeps
+
 * Fri Oct 17 2014 jchaloup <jchaloup@redhat.com> - 0.4.6-8
 - Add ExclusiveArch for go_arches
 
