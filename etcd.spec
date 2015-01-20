@@ -8,7 +8,7 @@
 
 Name:		%{repo}
 Version:	2.0.0
-Release:	1.rc1%{?dist}
+Release:	0.2.rc1%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{import_path}
@@ -16,17 +16,12 @@ Source0:	https://%{import_path}/archive/v%{version}-rc.1.tar.gz
 Source1:	%{name}.service
 Source2:	%{name}.conf
 BuildRequires:	golang >= 1.3.3
-BuildRequires:	golang(bitbucket.org/kardianos/osext)
 BuildRequires:	golang(code.google.com/p/gogoprotobuf)
-BuildRequires:	golang(github.com/BurntSushi/toml)
 BuildRequires:	golang(github.com/codegangsta/cli)
 BuildRequires:	golang(github.com/coreos/go-etcd/etcd)
-BuildRequires:	golang(github.com/coreos/go-log/log)
-BuildRequires:	golang(github.com/coreos/go-systemd)
-BuildRequires:	golang(github.com/gorilla/mux)
-BuildRequires:	golang(github.com/mreiferson/go-httpclient)
-BuildRequires:	golang(github.com/rcrowley/go-metrics)
 BuildRequires:  golang(golang.org/x/net/context)
+BuildRequires:  golang(github.com/jonboulle/clockwork)
+BuildRequires:  golang(github.com/stretchr/testify/assert)
 BuildRequires:	systemd
 Requires(pre):	shadow-utils
 Requires(post): systemd
@@ -38,40 +33,46 @@ A highly-available key value store for shared configuration.
 
 %package devel
 BuildRequires:  golang >= 1.2.1-3
-BuildRequires:  golang(bitbucket.org/kardianos/osext)
-BuildRequires:  golang(code.google.com/p/gogoprotobuf)
-BuildRequires:  golang(github.com/BurntSushi/toml)
-BuildRequires:  golang(github.com/coreos/go-log/log)
-BuildRequires:  golang(github.com/coreos/go-systemd)
-BuildRequires:  golang(github.com/gorilla/mux)
-BuildRequires:  golang(github.com/mreiferson/go-httpclient)
-BuildRequires:  golang(github.com/rcrowley/go-metrics)
+BuildRequires:	golang(code.google.com/p/gogoprotobuf)
+BuildRequires:	golang(github.com/codegangsta/cli)
+BuildRequires:	golang(github.com/coreos/go-etcd/etcd)
+BuildRequires:  golang(golang.org/x/net/context)
+BuildRequires:  golang(github.com/jonboulle/clockwork)
 BuildRequires:  golang(github.com/stretchr/testify/assert)
 Requires:       golang >= 1.2.1-3
-Provides:   golang(%{import_path}) = %{version}-%{release}
-Provides:   golang(%{import_path}/client) = %{version}-%{release}
-Provides:   golang(%{import_path}/discovery) = %{version}-%{release}
-Provides:   golang(%{import_path}/error) = %{version}-%{release}
-Provides:   golang(%{import_path}/etcdmain) = %{version}-%{release}
-Provides:   golang(%{import_path}/etcdserver) = %{version}-%{release}
-Provides:   golang(%{import_path}/migrate) = %{version}-%{release}
-Provides:   golang(%{import_path}/pkg/cors) = %{version}-%{release}
-Provides:   golang(%{import_path}/pkg/crc) = %{version}-%{release}
-Provides:   golang(%{import_path}/pkg/fileutil) = %{version}-%{release}
-Provides:   golang(%{import_path}/pkg/flags) = %{version}-%{release}
-Provides:   golang(%{import_path}/pkg/ioutils) = %{version}-%{release}
-Provides:   golang(%{import_path}/pkg/pbutil) = %{version}-%{release}
-Provides:   golang(%{import_path}/pkg/testutil) = %{version}-%{release}
-Provides:   golang(%{import_path}/pkg/transport) = %{version}-%{release}
-Provides:   golang(%{import_path}/pkg/types) = %{version}-%{release}
-Provides:   golang(%{import_path}/pkg/wait) = %{version}-%{release}
-Provides:   golang(%{import_path}/proxy) = %{version}-%{release}
-Provides:   golang(%{import_path}/raft) = %{version}-%{release}
-Provides:   golang(%{import_path}/rafthttp) = %{version}-%{release}
-Provides:   golang(%{import_path}/snap) = %{version}-%{release}
-Provides:   golang(%{import_path}/store) = %{version}-%{release}
-Provides:   golang(%{import_path}/wal) = %{version}-%{release}
-Summary:    etcd golang devel libraries
+Provides:       golang(%{import_path}) = %{version}-%{release}
+Provides:       golang(%{import_path}/client) = %{version}-%{release}
+Provides:       golang(%{import_path}/discovery) = %{version}-%{release}
+Provides:       golang(%{import_path}/error) = %{version}-%{release}
+Provides:       golang(%{import_path}/etcdctl) = %{version}-%{release}
+Provides:       golang(%{import_path}/etcdctl/command) = %{version}-%{release}
+Provides:       golang(%{import_path}/etcdmain) = %{version}-%{release}
+Provides:       golang(%{import_path}/etcdserver) = %{version}-%{release}
+Provides:       golang(%{import_path}/etcdserver/etcdhttp) = %{version}-%{release}
+Provides:       golang(%{import_path}/etcdserver/etcdhttp/httptypes) = %{version}-%{release}
+Provides:       golang(%{import_path}/etcdserver/etcdserverpb) = %{version}-%{release}
+Provides:       golang(%{import_path}/etcdserver/stats) = %{version}-%{release}
+Provides:       golang(%{import_path}/migrate) = %{version}-%{release}
+Provides:       golang(%{import_path}/pkg/cors) = %{version}-%{release}
+Provides:       golang(%{import_path}/pkg/crc) = %{version}-%{release}
+Provides:       golang(%{import_path}/pkg/fileutil) = %{version}-%{release}
+Provides:       golang(%{import_path}/pkg/flags) = %{version}-%{release}
+Provides:       golang(%{import_path}/pkg/ioutils) = %{version}-%{release}
+Provides:       golang(%{import_path}/pkg/pbutil) = %{version}-%{release}
+Provides:       golang(%{import_path}/pkg/testutil) = %{version}-%{release}
+Provides:       golang(%{import_path}/pkg/transport) = %{version}-%{release}
+Provides:       golang(%{import_path}/pkg/types) = %{version}-%{release}
+Provides:       golang(%{import_path}/pkg/wait) = %{version}-%{release}
+Provides:       golang(%{import_path}/proxy) = %{version}-%{release}
+Provides:       golang(%{import_path}/raft) = %{version}-%{release}
+Provides:       golang(%{import_path}/raft/raftpb) = %{version}-%{release}
+Provides:       golang(%{import_path}/rafthttp) = %{version}-%{release}
+Provides:       golang(%{import_path}/snap) = %{version}-%{release}
+Provides:       golang(%{import_path}/snap/snappb) = %{version}-%{release}
+Provides:       golang(%{import_path}/store) = %{version}-%{release}
+Provides:       golang(%{import_path}/wal) = %{version}-%{release}
+Provides:       golang(%{import_path}/wal/walpb) = %{version}-%{release}
+Summary:        etcd golang devel libraries
 ExclusiveArch:  %{ix86} x86_64 %{arm}
 
 %description devel
@@ -80,8 +81,8 @@ shared configuration.
 
 %prep
 %setup -qn %{name}-%{version}-rc.1
-rm -rf Godeps/_workspace/src/github.com/{codegangsta,coreos,stretchr}
-rm -rf Godeps/_workspace/src/{code.google.com,bitbucket.org}
+rm -rf Godeps/_workspace/src/github.com/{codegangsta,coreos,stretchr,jonboulle}
+rm -rf Godeps/_workspace/src/{code.google.com,bitbucket.org,golang.org}
 
 find . -name "*.go" \
        -print |\
@@ -112,7 +113,8 @@ install -d -m 0755 %{buildroot}%{_sharedstatedir}/%{name}
 install -d %{buildroot}/%{gopath}/src/%{import_path}
 cp -pav main.go %{buildroot}/%{gopath}/src/%{import_path}/
 for dir in client discovery error etcdctl etcdmain etcdserver \
-        migrate pkg proxy raft rafthttp snap store version wal
+        migrate pkg proxy raft rafthttp snap store version wal \
+	integration
 do
     cp -rpav ${dir} %{buildroot}/%{gopath}/src/%{import_path}/
 done
@@ -122,8 +124,12 @@ export GOPATH=%{gopath}:%{buildroot}%{gopath}:$(pwd)/Godeps/_workspace
 go test %{import_path}/client
 go test %{import_path}/discovery
 go test %{import_path}/error
+go test %{import_path}/etcdctl/command
 go test %{import_path}/etcdmain
 go test %{import_path}/etcdserver
+#go test %{import_path}/etcdserver/etcdhttp
+#go test %{import_path}/etcdserver/etcdhttp/httptypes
+#go test %{import_path}/integration
 go test %{import_path}/migrate
 #go test %{import_path}/pkg/fileutil
 go test %{import_path}/pkg/flags
@@ -135,7 +141,7 @@ go test %{import_path}/proxy
 go test %{import_path}/raft
 go test %{import_path}/rafthttp
 go test %{import_path}/snap
-go test %{import_path}/store
+#go test %{import_path}/store
 go test %{import_path}/wal
 
 %pre
@@ -167,7 +173,12 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %{gopath}/src/%{import_path}
 
 %changelog
-* Tue Dec 23 2014 Lokesh Mandvekar <lsm5@fedoraproject.org> - 2.0.0-1.rc1
+* Tue Jan 20 2015 jchaloup <jchaloup@redhat.com> - 2.0.0-0.2.rc1
+- Update of BuildRequires/Requires, Provides and test
+  Add BuildRequire on jonboulle/clockwork
+  related: #1176138
+
+* Tue Dec 23 2014 Lokesh Mandvekar <lsm5@fedoraproject.org> - 2.0.0-0.1.rc1
 - Resolves: rhbz#1176138 - update to v2.0.0-rc1
 - do not redefine gopath
 - use jonboulle/clockwork from within Godeps
