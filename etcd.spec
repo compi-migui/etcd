@@ -128,7 +128,7 @@ getent passwd etcd >/dev/null || useradd -r -g etcd -d %{_localstatedir}/lib/etc
 %{gopath}/src/%{import_path}/*
 
 %changelog
-* Wed Jan 21 2014 Eric Paris <eparis@redhat.com> - 0.4.6-7
+* Wed Jan 21 2015 Eric Paris <eparis@redhat.com> - 0.4.6-7
 - default to /var/lib/etcd/default.etcd as 2.0 uses that default
 
 * Mon Oct 06 2014 jchaloup <jchaloup@redhat.com> - 0.4.6-6
