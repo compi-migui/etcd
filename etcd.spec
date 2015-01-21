@@ -4,7 +4,7 @@
 
 Name:		etcd
 Version:	0.4.6
-Release:	6%{?dist}
+Release:	7%{?dist}
 Summary:	A highly-available key value store for shared configuration
 
 License:	ASL 2.0
@@ -128,6 +128,9 @@ getent passwd etcd >/dev/null || useradd -r -g etcd -d %{_localstatedir}/lib/etc
 %{gopath}/src/%{import_path}/*
 
 %changelog
+* Wed Jan 21 2014 Eric Paris <eparis@redhat.com> - 0.4.6-7
+- default to /var/lib/etcd/default.etcd as 2.0 uses that default
+
 * Mon Oct 06 2014 jchaloup <jchaloup@redhat.com> - 0.4.6-6
 - related: #1047194
   Remove dependency on go.net
