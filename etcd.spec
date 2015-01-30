@@ -8,11 +8,11 @@
 
 Name:		%{repo}
 Version:	2.0.0
-Release:	0.3.rc1%{?dist}
+Release:	0.4%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{import_path}
-Source0:	https://%{import_path}/archive/v%{version}-rc.1.tar.gz
+Source0:	https://%{import_path}/archive/v%{version}.tar.gz
 Source1:	%{name}.service
 Source2:	%{name}.conf
 BuildRequires:	golang >= 1.3.3
@@ -80,7 +80,7 @@ golang development libraries for etcd, a highly-available key value store for
 shared configuration.
 
 %prep
-%setup -qn %{name}-%{version}-rc.1
+%setup -qn %{name}-%{version}
 rm -rf Godeps/_workspace/src/github.com/{codegangsta,coreos,stretchr,jonboulle}
 rm -rf Godeps/_workspace/src/{code.google.com,bitbucket.org,golang.org}
 
@@ -93,10 +93,10 @@ find . -name "*.go" \
 mkdir -p src/github.com/coreos
 ln -s ../../../ src/github.com/coreos/etcd
 
-export GOPATH=%{gopath}:$(pwd):$(pwd)/Godeps/_workspace:$GOPATH
+export GOPATH=$(pwd):%{gopath}:$GOPATH
 go build -v -x -o bin/etcd %{import_path}
 go build -a -ldflags '-s' -o bin/etcdctl %{import_path}/etcdctl
-go build -v -x -o bin/etcd-migrate %{import_path}/migrate/cmd/%{name}-migrate
+go build -v -x -o bin/etcd-migrate %{import_path}/tools/%{name}-migrate
 
 
 %install
@@ -121,20 +121,20 @@ do
 done
 
 %check
-export GOPATH=%{gopath}:%{buildroot}%{gopath}:$(pwd)/Godeps/_workspace
+export GOPATH=%{buildroot}%{gopath}:%{gopath}
 go test %{import_path}/client
 go test %{import_path}/discovery
 go test %{import_path}/error
 go test %{import_path}/etcdctl/command
 go test %{import_path}/etcdmain
-go test %{import_path}/etcdserver
+#go test %{import_path}/etcdserver
 #go test %{import_path}/etcdserver/etcdhttp
 #go test %{import_path}/etcdserver/etcdhttp/httptypes
 #go test %{import_path}/integration
 go test %{import_path}/migrate
 #go test %{import_path}/pkg/fileutil
 go test %{import_path}/pkg/flags
-go test %{import_path}/pkg/ioutils
+go test %{import_path}/pkg/ioutil
 go test %{import_path}/pkg/transport
 go test %{import_path}/pkg/types
 go test %{import_path}/pkg/wait
@@ -174,6 +174,11 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %{gopath}/src/%{import_path}
 
 %changelog
+* Fri Jan 30 2015 jchaloup <jchaloup@redhat.com> - 2.0.0-0.4
+- Update to etcd-2.0.0
+- use gopath as the last directory to search for source code
+  related: #1176138
+
 * Mon Jan 26 2015 jchaloup <jchaloup@redhat.com> - 2.0.0-0.3.rc1
 - default to /var/lib/etcd/default.etcd as 2.0 uses that default (f21 commit byt eparis)
   related: #1176138
