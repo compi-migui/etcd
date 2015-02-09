@@ -1,4 +1,5 @@
-%global debug_package   %{nil}
+# https://bugzilla.redhat.com/show_bug.cgi?id=995136#c12
+%global _dwz_low_mem_die_limit 0
 %global provider        github
 %global provider_tld    com
 %global project         coreos
@@ -8,7 +9,7 @@
 
 Name:		%{repo}
 Version:	2.0.0
-Release:	0.4%{?dist}
+Release:	0.5%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{import_path}
@@ -18,7 +19,7 @@ Source2:	%{name}.conf
 ExclusiveArch:  %{ix86} x86_64 %{arm}
 
 BuildRequires:	golang >= 1.3.3
-BuildRequires:	golang(code.google.com/p/gogoprotobuf)
+BuildRequires:	golang(code.google.com/p/gogoprotobuf/proto)
 BuildRequires:	golang(github.com/codegangsta/cli)
 BuildRequires:	golang(github.com/coreos/go-etcd/etcd)
 BuildRequires:  golang(golang.org/x/net/context)
@@ -35,7 +36,7 @@ A highly-available key value store for shared configuration.
 
 %package devel
 BuildRequires:  golang >= 1.2.1-3
-BuildRequires:	golang(code.google.com/p/gogoprotobuf)
+BuildRequires:	golang(code.google.com/p/gogoprotobuf/proto)
 BuildRequires:	golang(github.com/codegangsta/cli)
 BuildRequires:	golang(github.com/coreos/go-etcd/etcd)
 BuildRequires:  golang(golang.org/x/net/context)
@@ -96,9 +97,11 @@ mkdir -p src/github.com/coreos
 ln -s ../../../ src/github.com/coreos/etcd
 
 export GOPATH=$(pwd):%{gopath}:$GOPATH
-go build -v -x -o bin/etcd %{import_path}
-go build -a -ldflags '-s' -o bin/etcdctl %{import_path}/etcdctl
-go build -v -x -o bin/etcd-migrate %{import_path}/tools/%{name}-migrate
+# *** ERROR: No build ID note found in /.../BUILDROOT/etcd-2.0.0-1.rc1.fc22.x86_64/usr/bin/etcd
+function gobuild { go build -a -ldflags "-B 0x$(head -c20 /dev/urandom|od -An -tx1|tr -d ' \n')" -v -x "$@"; }
+gobuild -o bin/etcd %{import_path}
+gobuild -o bin/etcdctl %{import_path}/etcdctl
+gobuild -o bin/etcd-migrate %{import_path}/tools/%{name}-migrate
 
 
 %install
@@ -175,6 +178,10 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %{gopath}/src/%{import_path}
 
 %changelog
+* Mon Feb 09 2015 jchaloup <jchaloup@redhat.com> - 2.0.0-0.5
+- Add missing debug info to binaries (patch from Jan Kratochvil)
+  resolves: #1184257
+
 * Fri Jan 30 2015 jchaloup <jchaloup@redhat.com> - 2.0.0-0.4
 - Update to etcd-2.0.0
 - use gopath as the last directory to search for source code
@@ -193,7 +200,7 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 * Fri Oct 17 2014 jchaloup <jchaloup@redhat.com> - 0.4.6-8
 - Add ExclusiveArch for go_arches
 
-* Wed Jan 21 2015 Eric Paris <eparis@redhat.com> - 0.4.6-7
+* Wed Oct 15 2014 Eric Paris <eparis@redhat.com> - 0.4.6-7
 - default to /var/lib/etcd/default.etcd as 2.0 uses that default
 
 * Mon Oct 06 2014 jchaloup <jchaloup@redhat.com> - 0.4.6-6
