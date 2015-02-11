@@ -8,8 +8,8 @@
 %global import_path     %{provider}.%{provider_tld}/%{project}/%{repo}
 
 Name:		%{repo}
-Version:	2.0.0
-Release:	0.5%{?dist}
+Version:	2.0.1
+Release:	0.1%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{import_path}
@@ -178,6 +178,10 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %{gopath}/src/%{import_path}
 
 %changelog
+* Wed Feb 11 2015 jchaloup <jchaloup@redhat.com> - 2.0.1-0.1
+- Update to 2.0.1
+  resolves: #1191441
+
 * Mon Feb 09 2015 jchaloup <jchaloup@redhat.com> - 2.0.0-0.5
 - Add missing debug info to binaries (patch from Jan Kratochvil)
   resolves: #1184257
