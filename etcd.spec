@@ -9,16 +9,19 @@
 
 Name:		%{repo}
 Version:	2.0.1
-Release:	0.1%{?dist}
+Release:	0.2%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{import_path}
 Source0:	https://%{import_path}/archive/v%{version}.tar.gz
 Source1:	%{name}.service
 Source2:	%{name}.conf
+
+Patch0: 	etcd-2.0.1-Replace-depricated-ErrWrongType-with-its-local-defin.patch
+
 ExclusiveArch:  %{ix86} x86_64 %{arm}
 BuildRequires:	golang >= 1.3.3
-BuildRequires:	golang(code.google.com/p/gogoprotobuf)
+BuildRequires:	golang(code.google.com/p/gogoprotobuf/proto)
 BuildRequires:	golang(github.com/codegangsta/cli)
 BuildRequires:	golang(github.com/coreos/go-etcd/etcd)
 BuildRequires:  golang(golang.org/x/net/context)
@@ -35,7 +38,7 @@ A highly-available key value store for shared configuration.
 
 %package devel
 BuildRequires:  golang >= 1.2.1-3
-BuildRequires:	golang(code.google.com/p/gogoprotobuf)
+BuildRequires:	golang(code.google.com/p/gogoprotobuf/proto)
 BuildRequires:	golang(github.com/codegangsta/cli)
 BuildRequires:	golang(github.com/coreos/go-etcd/etcd)
 BuildRequires:  golang(golang.org/x/net/context)
@@ -90,6 +93,8 @@ find . -name "*.go" \
        -print |\
        xargs sed -i 's/github.com\/coreos\/etcd\/Godeps\/_workspace\/src\///g'
 
+%patch0 -p1
+
 %build
 # Make link for etcd itself
 mkdir -p src/github.com/coreos
@@ -110,6 +115,7 @@ install -D -p -m 0755 bin/%{name}-migrate %{buildroot}%{_bindir}/%{name}-migrate
 install -D -p -m 0644 %{SOURCE1} %{buildroot}%{_unitdir}/%{name}.service
 install -d -m 0755 %{buildroot}%{_sysconfdir}/%{name}
 install -m 644 -t %{buildroot}%{_sysconfdir}/%{name} %{SOURCE2}
+
 
 # And create /var/lib/etcd
 install -d -m 0755 %{buildroot}%{_sharedstatedir}/%{name}
@@ -178,6 +184,11 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %{gopath}/src/%{import_path}
 
 %changelog
+* Wed Feb 18 2015 jchaloup <jchaloup@redhat.com> - 2.0.1-0.2
+- Update configuration and service file
+  Fix depricated ErrWrongType after update of gogo/protobuf
+  related: #1191441
+
 * Wed Feb 11 2015 jchaloup <jchaloup@redhat.com> - 2.0.1-0.1
 - Update to 2.0.1
   resolves: #1191441
