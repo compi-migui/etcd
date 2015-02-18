@@ -6,7 +6,7 @@ After=network.target
 Type=simple
 # etc logs to the journal directly, suppress double logging
 StandardOutput=null
-WorkingDirectory=/var/lib/etcd/`$hostname`.etcd
+EnvironmentFile=-/etc/etcd/etcd.conf
 User=etcd
 ExecStart=/usr/bin/etcd
 
