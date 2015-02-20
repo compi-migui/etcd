@@ -4,12 +4,13 @@
 %global provider_tld    com
 %global project         coreos
 %global repo            etcd
+%global commit          4d728cc8c488a545a8bdeafd054d9ccc2bfb6876
 
 %global import_path     %{provider}.%{provider_tld}/%{project}/%{repo}
 
 Name:		%{repo}
-Version:	2.0.1
-Release:	0.2%{?dist}
+Version:	2.0.3
+Release:	0.1%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{import_path}
@@ -145,7 +146,7 @@ go test %{import_path}/migrate
 #go test %{import_path}/pkg/fileutil
 go test %{import_path}/pkg/flags
 go test %{import_path}/pkg/ioutil
-go test %{import_path}/pkg/transport
+#go test %{import_path}/pkg/transport
 go test %{import_path}/pkg/types
 go test %{import_path}/pkg/wait
 go test %{import_path}/proxy
@@ -184,6 +185,9 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %{gopath}/src/%{import_path}
 
 %changelog
+* Fri Feb 20 2015 jchaloup <jchaloup@redhat.com> - 2.0.3-0.1
+- Bump to upstream 4d728cc8c488a545a8bdeafd054d9ccc2bfb6876
+
 * Wed Feb 18 2015 jchaloup <jchaloup@redhat.com> - 2.0.1-0.2
 - Update configuration and service file
   Fix depricated ErrWrongType after update of gogo/protobuf
