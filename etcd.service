@@ -5,7 +5,8 @@ After=network.target
 [Service]
 Type=simple
 # etc logs to the journal directly, suppress double logging
-StandardOutput=null
+# StandardOutput=null
+# This does not appear to be the case 
 EnvironmentFile=-/etc/etcd/etcd.conf
 User=etcd
 ExecStart=/usr/bin/etcd
