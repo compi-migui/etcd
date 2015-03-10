@@ -1,4 +1,5 @@
 # https://bugzilla.redhat.com/show_bug.cgi?id=995136#c12
+%global debug_package   %{nil}
 %global _dwz_low_mem_die_limit 0
 %global provider        github
 %global provider_tld    com
