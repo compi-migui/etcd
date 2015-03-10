@@ -10,7 +10,7 @@
 
 Name:		%{repo}
 Version:	2.0.3
-Release:	0.1%{?dist}
+Release:	0.2%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{import_path}
@@ -185,6 +185,9 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %{gopath}/src/%{import_path}
 
 %changelog
+* Tue Mar 10 2015 Eric Paris <eparis@redhat.com> - 2.0.3-0.2
+- Fix .service files to work if no config file
+
 * Fri Feb 20 2015 jchaloup <jchaloup@redhat.com> - 2.0.3-0.1
 - Bump to upstream 4d728cc8c488a545a8bdeafd054d9ccc2bfb6876
 
