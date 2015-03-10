@@ -1,6 +1,5 @@
 # https://bugzilla.redhat.com/show_bug.cgi?id=995136#c12
-#%global _dwz_low_mem_die_limit 0
-%global debug_package   %{nil}
+%global _dwz_low_mem_die_limit 0
 %global provider        github
 %global provider_tld    com
 %global project         coreos
@@ -11,7 +10,7 @@
 
 Name:		%{repo}
 Version:	2.0.3
-Release:	0.1%{?dist}
+Release:	0.2%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{import_path}
@@ -22,7 +21,6 @@ Source2:	%{name}.conf
 Patch0: 	etcd-2.0.1-Replace-depricated-ErrWrongType-with-its-local-defin.patch
 
 ExclusiveArch:  %{ix86} x86_64 %{arm}
-
 BuildRequires:	golang >= 1.3.3
 BuildRequires:	golang(code.google.com/p/gogoprotobuf/proto)
 BuildRequires:	golang(github.com/codegangsta/cli)
@@ -105,13 +103,10 @@ ln -s ../../../ src/github.com/coreos/etcd
 
 export GOPATH=$(pwd):%{gopath}:$GOPATH
 # *** ERROR: No build ID note found in /.../BUILDROOT/etcd-2.0.0-1.rc1.fc22.x86_64/usr/bin/etcd
-#function gobuild { go build -a -ldflags "-B 0x$(head -c20 /dev/urandom|od -An -tx1|tr -d ' \n')" -v -x "$@"; }
-#gobuild -o bin/etcd %{import_path}
-#gobuild -o bin/etcdctl %{import_path}/etcdctl
-#gobuild -o bin/etcd-migrate %{import_path}/tools/%{name}-migrate
-go build -v -x -o bin/etcd %{import_path}
-go build -a -ldflags '-s' -o bin/etcdctl %{import_path}/etcdctl
-go build -v -x -o bin/etcd-migrate %{import_path}/tools/%{name}-migrate
+function gobuild { go build -a -ldflags "-B 0x$(head -c20 /dev/urandom|od -An -tx1|tr -d ' \n')" -v -x "$@"; }
+gobuild -o bin/etcd %{import_path}
+gobuild -o bin/etcdctl %{import_path}/etcdctl
+gobuild -o bin/etcd-migrate %{import_path}/tools/%{name}-migrate
 
 
 %install
@@ -119,7 +114,8 @@ install -D -p -m 0755 bin/%{name} %{buildroot}%{_bindir}/%{name}
 install -D -p -m 0755 bin/%{name}ctl %{buildroot}%{_bindir}/%{name}ctl
 install -D -p -m 0755 bin/%{name}-migrate %{buildroot}%{_bindir}/%{name}-migrate
 install -D -p -m 0644 %{SOURCE1} %{buildroot}%{_unitdir}/%{name}.service
-install -D -p -m 0644 %{SOURCE2} %{buildroot}%{_sysconfdir}/%{name}
+install -d -m 0755 %{buildroot}%{_sysconfdir}/%{name}
+install -m 644 -t %{buildroot}%{_sysconfdir}/%{name} %{SOURCE2}
 
 
 # And create /var/lib/etcd
@@ -189,10 +185,11 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %{gopath}/src/%{import_path}
 
 %changelog
+* Tue Mar 10 2015 Eric Paris <eparis@redhat.com> - 2.0.3-0.2
+- Fix .service files to work if no config file
+
 * Fri Feb 20 2015 jchaloup <jchaloup@redhat.com> - 2.0.3-0.1
 - Bump to upstream 4d728cc8c488a545a8bdeafd054d9ccc2bfb6876
-  remove debug info until 1196571 is resolved
-  related: #1191441
 
 * Wed Feb 18 2015 jchaloup <jchaloup@redhat.com> - 2.0.1-0.2
 - Update configuration and service file
@@ -212,6 +209,11 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 - use gopath as the last directory to search for source code
   related: #1176138
 
+* Mon Jan 26 2015 jchaloup <jchaloup@redhat.com> - 2.0.0-0.3.rc1
+- default to /var/lib/etcd/default.etcd as 2.0 uses that default (f21 commit byt eparis)
+  related: #1176138
+  fix /etc/etcd/etcd.conf path
+
 * Tue Jan 20 2015 jchaloup <jchaloup@redhat.com> - 2.0.0-0.2.rc1
 - Update of BuildRequires/Requires, Provides and test
   Add BuildRequire on jonboulle/clockwork
@@ -222,11 +224,8 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 - do not redefine gopath
 - use jonboulle/clockwork from within Godeps
 
-* Fri Oct 17 2014 jchaloup <jchaloup@redhat.com> - 0.4.6-8
+* Fri Oct 17 2014 jchaloup <jchaloup@redhat.com> - 0.4.6-7
 - Add ExclusiveArch for go_arches
-
-* Wed Oct 15 2014 Eric Paris <eparis@redhat.com> - 0.4.6-7
-- default to /var/lib/etcd/default.etcd as 2.0 uses that default
 
 * Mon Oct 06 2014 jchaloup <jchaloup@redhat.com> - 0.4.6-6
 - related: #1047194
