@@ -4,13 +4,13 @@
 %global provider_tld    com
 %global project         coreos
 %global repo            etcd
-%global commit          4d728cc8c488a545a8bdeafd054d9ccc2bfb6876
+%global commit          9481945228b97c5d019596b921d8b03833964d9e
 
 %global import_path     %{provider}.%{provider_tld}/%{project}/%{repo}
 
 Name:		%{repo}
-Version:	2.0.3
-Release:	0.2%{?dist}
+Version:	2.0.5
+Release:	0.1%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{import_path}
@@ -185,6 +185,9 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %{gopath}/src/%{import_path}
 
 %changelog
+* Thu Mar 12 2015 jchaloup <jchaloup@redhat.com> - 2.0.5-0.1
+- Bump to 9481945228b97c5d019596b921d8b03833964d9e (v2.0.5)
+
 * Tue Mar 10 2015 Eric Paris <eparis@redhat.com> - 2.0.3-0.2
 - Fix .service files to work if no config file
 
