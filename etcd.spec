@@ -1,5 +1,4 @@
 # https://bugzilla.redhat.com/show_bug.cgi?id=995136#c12
-%global debug_package   %{nil}
 %global _dwz_low_mem_die_limit 0
 %global provider        github
 %global provider_tld    com
@@ -30,6 +29,7 @@ BuildRequires:  golang(golang.org/x/net/context)
 BuildRequires:  golang(github.com/jonboulle/clockwork)
 BuildRequires:  golang(github.com/stretchr/testify/assert)
 BuildRequires:	systemd
+BuildRequires:  elfutils >= 0.161-6
 Requires(pre):	shadow-utils
 Requires(post): systemd
 Requires(preun): systemd
