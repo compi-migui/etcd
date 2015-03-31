@@ -4,12 +4,12 @@
 %global provider_tld    com
 %global project         coreos
 %global repo            etcd
-%global commit          9481945228b97c5d019596b921d8b03833964d9e
+%global commit          0cb90e4bea279eb207be3478affac7cc02692bec
 
 %global import_path     %{provider}.%{provider_tld}/%{project}/%{repo}
 
 Name:		%{repo}
-Version:	2.0.5
+Version:	2.0.7
 Release:	0.1%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
@@ -179,13 +179,20 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %dir %attr(-,%{name},%{name}) %{_sharedstatedir}/%{name}
 %{_unitdir}/%{name}.service
 %doc LICENSE README.md Documentation/internal-protocol-versioning.md
+%doc Godeps/Godeps.json
 
 %files devel
 %doc LICENSE README.md Documentation/internal-protocol-versioning.md
 %dir %{gopath}/src/%{provider}.%{provider_tld}/%{project}
 %{gopath}/src/%{import_path}
+%doc Godeps/Godeps.json
 
 %changelog
+* Tue Mar 31 2015 jchaloup <jchaloup@redhat.com> - 2.0.7-0.1
+- Update to v2.0.7
+  Add Godeps.json to doc
+  related: #1191441
+
 * Thu Mar 12 2015 jchaloup <jchaloup@redhat.com> - 2.0.5-0.1
 - Bump to 9481945228b97c5d019596b921d8b03833964d9e (v2.0.5)
 
