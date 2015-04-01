@@ -9,7 +9,7 @@
 %global import_path     %{provider}.%{provider_tld}/%{project}/%{repo}
 
 Name:		%{repo}
-Version:	2.0.7
+Version:	2.0.8
 Release:	0.1%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
@@ -47,38 +47,46 @@ BuildRequires:  golang(golang.org/x/net/context)
 BuildRequires:  golang(github.com/jonboulle/clockwork)
 BuildRequires:  golang(github.com/stretchr/testify/assert)
 Requires:       golang >= 1.2.1-3
-Provides:       golang(%{import_path}) = %{version}-%{release}
-Provides:       golang(%{import_path}/client) = %{version}-%{release}
-Provides:       golang(%{import_path}/discovery) = %{version}-%{release}
-Provides:       golang(%{import_path}/error) = %{version}-%{release}
-Provides:       golang(%{import_path}/etcdctl) = %{version}-%{release}
-Provides:       golang(%{import_path}/etcdctl/command) = %{version}-%{release}
-Provides:       golang(%{import_path}/etcdmain) = %{version}-%{release}
-Provides:       golang(%{import_path}/etcdserver) = %{version}-%{release}
-Provides:       golang(%{import_path}/etcdserver/etcdhttp) = %{version}-%{release}
-Provides:       golang(%{import_path}/etcdserver/etcdhttp/httptypes) = %{version}-%{release}
-Provides:       golang(%{import_path}/etcdserver/etcdserverpb) = %{version}-%{release}
-Provides:       golang(%{import_path}/etcdserver/stats) = %{version}-%{release}
-Provides:       golang(%{import_path}/migrate) = %{version}-%{release}
-Provides:       golang(%{import_path}/pkg/cors) = %{version}-%{release}
-Provides:       golang(%{import_path}/pkg/crc) = %{version}-%{release}
-Provides:       golang(%{import_path}/pkg/fileutil) = %{version}-%{release}
-Provides:       golang(%{import_path}/pkg/flags) = %{version}-%{release}
-Provides:       golang(%{import_path}/pkg/ioutils) = %{version}-%{release}
-Provides:       golang(%{import_path}/pkg/pbutil) = %{version}-%{release}
-Provides:       golang(%{import_path}/pkg/testutil) = %{version}-%{release}
-Provides:       golang(%{import_path}/pkg/transport) = %{version}-%{release}
-Provides:       golang(%{import_path}/pkg/types) = %{version}-%{release}
-Provides:       golang(%{import_path}/pkg/wait) = %{version}-%{release}
-Provides:       golang(%{import_path}/proxy) = %{version}-%{release}
-Provides:       golang(%{import_path}/raft) = %{version}-%{release}
-Provides:       golang(%{import_path}/raft/raftpb) = %{version}-%{release}
-Provides:       golang(%{import_path}/rafthttp) = %{version}-%{release}
-Provides:       golang(%{import_path}/snap) = %{version}-%{release}
-Provides:       golang(%{import_path}/snap/snappb) = %{version}-%{release}
-Provides:       golang(%{import_path}/store) = %{version}-%{release}
-Provides:       golang(%{import_path}/wal) = %{version}-%{release}
-Provides:       golang(%{import_path}/wal/walpb) = %{version}-%{release}
+Provides: golang(%{import_path}/client) = %{version}-%{release}
+Provides: golang(%{import_path}/discovery) = %{version}-%{release}
+Provides: golang(%{import_path}/error) = %{version}-%{release}
+Provides: golang(%{import_path}/etcdctl/command) = %{version}-%{release}
+Provides: golang(%{import_path}/etcdmain) = %{version}-%{release}
+Provides: golang(%{import_path}/etcdserver) = %{version}-%{release}
+Provides: golang(%{import_path}/etcdserver/etcdhttp) = %{version}-%{release}
+Provides: golang(%{import_path}/etcdserver/etcdhttp/httptypes) = %{version}-%{release}
+Provides: golang(%{import_path}/etcdserver/etcdserverpb) = %{version}-%{release}
+Provides: golang(%{import_path}/etcdserver/stats) = %{version}-%{release}
+Provides: golang(%{import_path}/integration) = %{version}-%{release}
+Provides: golang(%{import_path}/migrate) = %{version}-%{release}
+Provides: golang(%{import_path}/migrate/etcd4pb) = %{version}-%{release}
+Provides: golang(%{import_path}/pkg/coreos) = %{version}-%{release}
+Provides: golang(%{import_path}/pkg/cors) = %{version}-%{release}
+Provides: golang(%{import_path}/pkg/crc) = %{version}-%{release}
+Provides: golang(%{import_path}/pkg/fileutil) = %{version}-%{release}
+Provides: golang(%{import_path}/pkg/flags) = %{version}-%{release}
+Provides: golang(%{import_path}/pkg/idutil) = %{version}-%{release}
+Provides: golang(%{import_path}/pkg/ioutil) = %{version}-%{release}
+Provides: golang(%{import_path}/pkg/metrics) = %{version}-%{release}
+Provides: golang(%{import_path}/pkg/netutil) = %{version}-%{release}
+Provides: golang(%{import_path}/pkg/osutil) = %{version}-%{release}
+Provides: golang(%{import_path}/pkg/pbutil) = %{version}-%{release}
+Provides: golang(%{import_path}/pkg/testutil) = %{version}-%{release}
+Provides: golang(%{import_path}/pkg/timeutil) = %{version}-%{release}
+Provides: golang(%{import_path}/pkg/transport) = %{version}-%{release}
+Provides: golang(%{import_path}/pkg/types) = %{version}-%{release}
+Provides: golang(%{import_path}/pkg/wait) = %{version}-%{release}
+Provides: golang(%{import_path}/proxy) = %{version}-%{release}
+Provides: golang(%{import_path}/raft) = %{version}-%{release}
+Provides: golang(%{import_path}/raft/raftpb) = %{version}-%{release}
+Provides: golang(%{import_path}/raft/rafttest) = %{version}-%{release}
+Provides: golang(%{import_path}/rafthttp) = %{version}-%{release}
+Provides: golang(%{import_path}/snap) = %{version}-%{release}
+Provides: golang(%{import_path}/snap/snappb) = %{version}-%{release}
+Provides: golang(%{import_path}/store) = %{version}-%{release}
+Provides: golang(%{import_path}/version) = %{version}-%{release}
+Provides: golang(%{import_path}/wal) = %{version}-%{release}
+Provides: golang(%{import_path}/wal/walpb) = %{version}-%{release}
 Summary:        etcd golang devel libraries
 ExclusiveArch:  %{ix86} x86_64 %{arm}
 
@@ -188,6 +196,10 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %doc Godeps/Godeps.json
 
 %changelog
+* Wed Apr 01 2015 jchaloup <jchaloup@redhat.com> - 2.0.8-0.1
+- Update to v2.0.8
+  resolves: #1207881
+
 * Tue Mar 31 2015 jchaloup <jchaloup@redhat.com> - 2.0.7-0.1
 - Update to v2.0.7
   Add Godeps.json to doc
