@@ -10,7 +10,7 @@
 
 Name:		%{repo}
 Version:	2.0.8
-Release:	0.1%{?dist}
+Release:	0.2%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{import_path}
@@ -18,16 +18,20 @@ Source0:	https://%{import_path}/archive/v%{version}.tar.gz
 Source1:	%{name}.service
 Source2:	%{name}.conf
 
+%if 0%{?fedora}
 Patch0: 	etcd-2.0.1-Replace-depricated-ErrWrongType-with-its-local-defin.patch
+%endif
 
 ExclusiveArch:  %{ix86} x86_64 %{arm}
 BuildRequires:	golang >= 1.3.3
+%if 0%{?fedora}
 BuildRequires:	golang(code.google.com/p/gogoprotobuf/proto)
 BuildRequires:	golang(github.com/codegangsta/cli)
 BuildRequires:	golang(github.com/coreos/go-etcd/etcd)
 BuildRequires:  golang(golang.org/x/net/context)
 BuildRequires:  golang(github.com/jonboulle/clockwork)
 BuildRequires:  golang(github.com/stretchr/testify/assert)
+%endif
 BuildRequires:	systemd
 Requires(pre):	shadow-utils
 Requires(post): systemd
@@ -37,6 +41,7 @@ Requires(postun): systemd
 %description
 A highly-available key value store for shared configuration.
 
+%if 0%{?fedora}
 %package devel
 BuildRequires:  golang >= 1.2.1-3
 BuildRequires:	golang(code.google.com/p/gogoprotobuf/proto)
@@ -92,9 +97,11 @@ ExclusiveArch:  %{ix86} x86_64 %{arm}
 %description devel
 golang development libraries for etcd, a highly-available key value store for
 shared configuration.
+%endif
 
 %prep
 %setup -qn %{name}-%{version}
+%if 0%{?fedora}
 rm -rf Godeps/_workspace/src/github.com/{codegangsta,coreos,stretchr,jonboulle}
 rm -rf Godeps/_workspace/src/{code.google.com,bitbucket.org,golang.org}
 
@@ -103,8 +110,10 @@ find . -name "*.go" \
        xargs sed -i 's/github.com\/coreos\/etcd\/Godeps\/_workspace\/src\///g'
 
 %patch0 -p1
+%endif
 
 %build
+%if 0%{?fedora}
 # Make link for etcd itself
 mkdir -p src/github.com/coreos
 ln -s ../../../ src/github.com/coreos/etcd
@@ -115,6 +124,9 @@ function gobuild { go build -a -ldflags "-B 0x$(head -c20 /dev/urandom|od -An -t
 gobuild -o bin/etcd %{import_path}
 gobuild -o bin/etcdctl %{import_path}/etcdctl
 gobuild -o bin/etcd-migrate %{import_path}/tools/%{name}-migrate
+%else
+./build
+%endif
 
 
 %install
@@ -129,6 +141,7 @@ install -m 644 -t %{buildroot}%{_sysconfdir}/%{name} %{SOURCE2}
 # And create /var/lib/etcd
 install -d -m 0755 %{buildroot}%{_sharedstatedir}/%{name}
 
+%if 0%{?fedora}
 # Install files for devel sub-package
 install -d %{buildroot}/%{gopath}/src/%{import_path}
 cp -pav main.go %{buildroot}/%{gopath}/src/%{import_path}/
@@ -138,8 +151,10 @@ for dir in client discovery error etcdctl etcdmain etcdserver \
 do
     cp -rpav ${dir} %{buildroot}/%{gopath}/src/%{import_path}/
 done
+%endif
 
 %check
+%if 0%{?fedora}
 export GOPATH=%{buildroot}%{gopath}:%{gopath}
 go test %{import_path}/client
 go test %{import_path}/discovery
@@ -163,6 +178,10 @@ go test %{import_path}/rafthttp
 go test %{import_path}/snap
 #go test %{import_path}/store
 go test %{import_path}/wal
+%else
+#./cover // requires golang cover
+#./test  // requires golang cover
+%endif
 
 %pre
 getent group %{name} >/dev/null || groupadd -r %{name}
@@ -188,13 +207,19 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %doc LICENSE README.md Documentation/internal-protocol-versioning.md
 %doc Godeps/Godeps.json
 
+%if 0%{?fedora}
 %files devel
 %doc LICENSE README.md Documentation/internal-protocol-versioning.md
 %dir %{gopath}/src/%{provider}.%{provider_tld}/%{project}
 %{gopath}/src/%{import_path}
 %doc Godeps/Godeps.json
+%endif
 
 %changelog
+* Fri Apr 03 2015 jchaloup <jchaloup@redhat.com> - 2.0.8-0.2
+- Update spec file to fit for rhel too (thanks to eparis)
+  related: #1207881
+
 * Wed Apr 01 2015 jchaloup <jchaloup@redhat.com> - 2.0.8-0.1
 - Update to v2.0.8
   resolves: #1207881
