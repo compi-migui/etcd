@@ -10,7 +10,7 @@
 
 Name:		%{repo}
 Version:	2.0.9
-Release:	0.1%{?dist}
+Release:	1%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{import_path}
@@ -217,7 +217,7 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
-* Wed Apr 08 2015 jchaloup <jchaloup@redhat.com> - 2.0.9-0.1
+* Wed Apr 08 2015 jchaloup <jchaloup@redhat.com> - 2.0.9-1
 - Update to v2.0.9
   resolves: #1209666
 
