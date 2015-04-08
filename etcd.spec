@@ -1,5 +1,9 @@
+%if 0%{?fedora}
 # https://bugzilla.redhat.com/show_bug.cgi?id=995136#c12
 %global _dwz_low_mem_die_limit 0
+%else
+%global debug_package   %{nil}
+%endif
 %global provider        github
 %global provider_tld    com
 %global project         coreos
@@ -23,7 +27,7 @@ Patch0: 	etcd-2.0.1-Replace-depricated-ErrWrongType-with-its-local-defin.patch
 %endif
 
 ExclusiveArch:  %{ix86} x86_64 %{arm}
-BuildRequires:	golang >= 1.3.3
+BuildRequires:	golang >= 1.2.1-3
 %if 0%{?fedora}
 BuildRequires:	golang(code.google.com/p/gogoprotobuf/proto)
 BuildRequires:	golang(github.com/codegangsta/cli)
@@ -133,7 +137,9 @@ gobuild -o bin/etcd-migrate %{import_path}/tools/%{name}-migrate
 %install
 install -D -p -m 0755 bin/%{name} %{buildroot}%{_bindir}/%{name}
 install -D -p -m 0755 bin/%{name}ctl %{buildroot}%{_bindir}/%{name}ctl
+%if 0%{?fedora}
 install -D -p -m 0755 bin/%{name}-migrate %{buildroot}%{_bindir}/%{name}-migrate
+%endif
 install -D -p -m 0644 %{SOURCE1} %{buildroot}%{_unitdir}/%{name}.service
 install -d -m 0755 %{buildroot}%{_sysconfdir}/%{name}
 install -m 644 -t %{buildroot}%{_sysconfdir}/%{name} %{SOURCE2}
@@ -202,7 +208,9 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %config(noreplace) %{_sysconfdir}/%{name}
 %{_bindir}/%{name}
 %{_bindir}/%{name}ctl
+%if 0%{?fedora}
 %{_bindir}/%{name}-migrate
+%endif
 %dir %attr(-,%{name},%{name}) %{_sharedstatedir}/%{name}
 %{_unitdir}/%{name}.service
 %doc LICENSE README.md Documentation/internal-protocol-versioning.md
