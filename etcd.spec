@@ -4,13 +4,13 @@
 %global provider_tld    com
 %global project         coreos
 %global repo            etcd
-%global commit          0cb90e4bea279eb207be3478affac7cc02692bec
+%global commit          02697ca725e5c790cc1f9d0918ff22fad84cb4c5
 
 %global import_path     %{provider}.%{provider_tld}/%{project}/%{repo}
 
 Name:		%{repo}
-Version:	2.0.8
-Release:	0.2%{?dist}
+Version:	2.0.9
+Release:	0.1%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{import_path}
@@ -28,9 +28,9 @@ BuildRequires:	golang >= 1.3.3
 BuildRequires:	golang(code.google.com/p/gogoprotobuf/proto)
 BuildRequires:	golang(github.com/codegangsta/cli)
 BuildRequires:	golang(github.com/coreos/go-etcd/etcd)
-BuildRequires:  golang(golang.org/x/net/context)
 BuildRequires:  golang(github.com/jonboulle/clockwork)
 BuildRequires:  golang(github.com/stretchr/testify/assert)
+BuildRequires:  golang(golang.org/x/net/context)
 %endif
 BuildRequires:	systemd
 BuildRequires:  elfutils >= 0.161-6
@@ -217,6 +217,10 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Wed Apr 08 2015 jchaloup <jchaloup@redhat.com> - 2.0.9-0.1
+- Update to v2.0.9
+  resolves: #1209666
+
 * Fri Apr 03 2015 jchaloup <jchaloup@redhat.com> - 2.0.8-0.2
 - Update spec file to fit for rhel too (thanks to eparis)
   related: #1207881
