@@ -13,7 +13,7 @@
 %global import_path     %{provider}.%{provider_tld}/%{project}/%{repo}
 
 Name:		%{repo}
-Version:	2.0.10
+Version:	2.0.11
 Release:	1%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
@@ -225,6 +225,10 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Mon May 18 2015 jchaloup <jchaloup@redhat.com> - 2.0.11-1
+- Update to v2.0.11
+  resolves: #1222416
+
 * Thu Apr 23 2015 jchaloup <jchaloup@redhat.com> - 2.0.10-1
 - Update to v2.0.10
   resolves: #1214705
