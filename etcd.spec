@@ -14,7 +14,7 @@
 
 Name:		%{repo}
 Version:	2.0.11
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{import_path}
@@ -224,6 +224,10 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Fri May 22 2015 jchaloup <jchaloup@redhat.com> - 2.0.11-2
+- ETCD_ADVERTISE_CLIENT_URLS has to be set if ETCD_LISTEN_CLIENT_URLS is
+  related: #1222416
+
 * Mon May 18 2015 jchaloup <jchaloup@redhat.com> - 2.0.11-1
 - Update to v2.0.11
   resolves: #1222416
