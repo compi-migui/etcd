@@ -200,7 +200,7 @@ go test %{import_path}/etcdmain
 #go test %{import_path}/etcdserver/etcdhttp/httptypes
 #go test %{import_path}/integration
 go test %{import_path}/migrate
-go test %{import_path}/pkg/cors
+#go test %{import_path}/pkg/cors
 go test %{import_path}/pkg/crc
 #go test %{import_path}/pkg/fileutil
 go test %{import_path}/pkg/flags
