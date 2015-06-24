@@ -1,4 +1,16 @@
 %if 0%{?fedora}
+%global with_devel 1
+%global with_bundled 0
+%global with_debug 1
+%global with_check 1
+%else
+%global with_devel 0
+%global with_bundled 1
+%global with_debug 0
+%global with_check 0
+%endif
+
+%if 0%{?with_devel}
 # https://bugzilla.redhat.com/show_bug.cgi?id=995136#c12
 %global _dwz_low_mem_die_limit 0
 %else
@@ -8,13 +20,13 @@
 %global provider_tld    com
 %global project         coreos
 %global repo            etcd
-%global commit          02697ca725e5c790cc1f9d0918ff22fad84cb4c5
+%global commit          5686c33e4b27e905a15ecbe8702dcfc3c270ca76
 
 %global import_path     %{provider}.%{provider_tld}/%{project}/%{repo}
 
 Name:		%{repo}
-Version:	2.0.11
-Release:	3%{?dist}
+Version:	2.0.12
+Release:	1%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{import_path}
@@ -22,13 +34,13 @@ Source0:	https://%{import_path}/archive/v%{version}.tar.gz
 Source1:	%{name}.service
 Source2:	%{name}.conf
 
-%if 0%{?fedora}
+%if ! 0%{?with_bundled}
 Patch0: 	etcd-2.0.1-Replace-depricated-ErrWrongType-with-its-local-defin.patch
 %endif
 
 ExclusiveArch:  %{ix86} x86_64 %{arm}
 BuildRequires:	golang >= 1.2.1-3
-%if 0%{?fedora}
+%if ! 0%{?with_bundled}
 BuildRequires:	golang(code.google.com/p/gogoprotobuf/proto)
 BuildRequires:	golang(github.com/codegangsta/cli)
 BuildRequires:	golang(github.com/coreos/go-etcd/etcd)
@@ -45,7 +57,7 @@ Requires(postun): systemd
 %description
 A highly-available key value store for shared configuration.
 
-%if 0%{?fedora}
+%if 0%{?with_devel}
 %package devel
 BuildRequires:  golang >= 1.2.1-3
 BuildRequires:	golang(code.google.com/p/gogoprotobuf/proto)
@@ -54,7 +66,12 @@ BuildRequires:	golang(github.com/coreos/go-etcd/etcd)
 BuildRequires:  golang(golang.org/x/net/context)
 BuildRequires:  golang(github.com/jonboulle/clockwork)
 BuildRequires:  golang(github.com/stretchr/testify/assert)
-Requires:       golang >= 1.2.1-3
+Requires: golang(code.google.com/p/gogoprotobuf/proto)
+Requires: golang(github.com/codegangsta/cli)
+Requires: golang(github.com/coreos/go-etcd/etcd)
+Requires: golang(golang.org/x/net/context)
+Requires: golang(github.com/jonboulle/clockwork)
+Requires: golang(github.com/stretchr/testify/assert)
 Provides: golang(%{import_path}/client) = %{version}-%{release}
 Provides: golang(%{import_path}/discovery) = %{version}-%{release}
 Provides: golang(%{import_path}/error) = %{version}-%{release}
@@ -67,7 +84,6 @@ Provides: golang(%{import_path}/etcdserver/etcdserverpb) = %{version}-%{release}
 Provides: golang(%{import_path}/etcdserver/stats) = %{version}-%{release}
 Provides: golang(%{import_path}/integration) = %{version}-%{release}
 Provides: golang(%{import_path}/migrate) = %{version}-%{release}
-Provides: golang(%{import_path}/migrate/etcd4pb) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/coreos) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/cors) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/crc) = %{version}-%{release}
@@ -105,7 +121,7 @@ shared configuration.
 
 %prep
 %setup -qn %{name}-%{version}
-%if 0%{?fedora}
+%if ! 0%{?with_bundled}
 rm -rf Godeps/_workspace/src/github.com/{codegangsta,coreos,stretchr,jonboulle}
 rm -rf Godeps/_workspace/src/{code.google.com,bitbucket.org,golang.org}
 
@@ -117,14 +133,20 @@ find . -name "*.go" \
 %endif
 
 %build
-%if 0%{?fedora}
+%if ! 0%{?with_bundled}
 # Make link for etcd itself
 mkdir -p src/github.com/coreos
 ln -s ../../../ src/github.com/coreos/etcd
 
 export GOPATH=$(pwd):%{gopath}:$GOPATH
+
+%if 0%{?with_debug}
 # *** ERROR: No build ID note found in /.../BUILDROOT/etcd-2.0.0-1.rc1.fc22.x86_64/usr/bin/etcd
 function gobuild { go build -a -ldflags "-B 0x$(head -c20 /dev/urandom|od -An -tx1|tr -d ' \n')" -v -x "$@"; }
+%else
+function gobuild { go build -a "$@"; }
+%endif
+
 gobuild -o bin/etcd %{import_path}
 gobuild -o bin/etcdctl %{import_path}/etcdctl
 gobuild -o bin/etcd-migrate %{import_path}/tools/%{name}-migrate
@@ -137,7 +159,9 @@ gobuild -o bin/etcd-migrate %{import_path}/tools/%{name}-migrate
 install -D -p -m 0755 bin/%{name} %{buildroot}%{_bindir}/%{name}
 install -D -p -m 0755 bin/%{name}ctl %{buildroot}%{_bindir}/%{name}ctl
 %if 0%{?fedora}
+%if ! 0%{?with_bundled}
 install -D -p -m 0755 bin/%{name}-migrate %{buildroot}%{_bindir}/%{name}-migrate
+%endif
 %endif
 install -D -p -m 0644 %{SOURCE1} %{buildroot}%{_unitdir}/%{name}.service
 install -d -m 0755 %{buildroot}%{_sysconfdir}/%{name}
@@ -147,7 +171,7 @@ install -m 644 -t %{buildroot}%{_sysconfdir}/%{name} %{SOURCE2}
 # And create /var/lib/etcd
 install -d -m 0755 %{buildroot}%{_sharedstatedir}/%{name}
 
-%if 0%{?fedora}
+%if 0%{?with_devel}
 # Install files for devel sub-package
 install -d %{buildroot}/%{gopath}/src/%{import_path}
 cp -pav main.go %{buildroot}/%{gopath}/src/%{import_path}/
@@ -160,8 +184,12 @@ done
 %endif
 
 %check
-%if 0%{?fedora}
+%if 0%{?with_check}
+%if 0%{?with_bundled}
+export GOPATH=$(pwd)/Godeps/_workspace:%{gopath}
+%else
 export GOPATH=%{buildroot}%{gopath}:%{gopath}
+%endif
 go test %{import_path}/client
 go test %{import_path}/discovery
 go test %{import_path}/error
@@ -172,21 +200,28 @@ go test %{import_path}/etcdmain
 #go test %{import_path}/etcdserver/etcdhttp/httptypes
 #go test %{import_path}/integration
 go test %{import_path}/migrate
+go test %{import_path}/pkg/cors
+go test %{import_path}/pkg/crc
 #go test %{import_path}/pkg/fileutil
 go test %{import_path}/pkg/flags
+go test %{import_path}/pkg/idutil
 go test %{import_path}/pkg/ioutil
+go test %{import_path}/pkg/metrics
+go test %{import_path}/pkg/netutil
+go test %{import_path}/pkg/osutil
+go test %{import_path}/pkg/pbutil
+go test %{import_path}/pkg/timeutil
 #go test %{import_path}/pkg/transport
 go test %{import_path}/pkg/types
 go test %{import_path}/pkg/wait
 go test %{import_path}/proxy
 go test %{import_path}/raft
+#go test %{import_path}/raft/rafttest
 go test %{import_path}/rafthttp
 go test %{import_path}/snap
 #go test %{import_path}/store
+go test %{import_path}/version
 go test %{import_path}/wal
-%else
-#./cover // requires golang cover
-#./test  // requires golang cover
 %endif
 
 %pre
@@ -208,14 +243,16 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %{_bindir}/%{name}
 %{_bindir}/%{name}ctl
 %if 0%{?fedora}
+%if ! 0%{?with_bundled}
 %{_bindir}/%{name}-migrate
+%endif
 %endif
 %dir %attr(-,%{name},%{name}) %{_sharedstatedir}/%{name}
 %{_unitdir}/%{name}.service
 %doc LICENSE README.md Documentation/internal-protocol-versioning.md
 %doc Godeps/Godeps.json
 
-%if 0%{?fedora}
+%if 0%{?with_devel}
 %files devel
 %doc LICENSE README.md Documentation/internal-protocol-versioning.md
 %dir %{gopath}/src/%{provider}.%{provider_tld}/%{project}
@@ -224,6 +261,10 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Wed Jun 24 2015 jchaloup <jchaloup@redhat.com> - 2.0.12-1
+- Update to v2.0.12
+- Polish spec file
+
 * Wed Jun 17 2015 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.0.11-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_23_Mass_Rebuild
 
