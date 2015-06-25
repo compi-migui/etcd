@@ -21,12 +21,13 @@
 %global project         coreos
 %global repo            etcd
 %global commit          5686c33e4b27e905a15ecbe8702dcfc3c270ca76
+%global shortcommit     %(c=%{commit}; echo ${c:0:7})
 
 %global import_path     %{provider}.%{provider_tld}/%{project}/%{repo}
 
 Name:		%{repo}
 Version:	2.0.12
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{import_path}
@@ -142,9 +143,9 @@ export GOPATH=$(pwd):%{gopath}:$GOPATH
 
 %if 0%{?with_debug}
 # *** ERROR: No build ID note found in /.../BUILDROOT/etcd-2.0.0-1.rc1.fc22.x86_64/usr/bin/etcd
-function gobuild { go build -a -ldflags "-B 0x$(head -c20 /dev/urandom|od -An -tx1|tr -d ' \n')" -v -x "$@"; }
+function gobuild { go build -a -ldflags "-B 0x$(head -c20 /dev/urandom|od -An -tx1|tr -d ' \n') -s -X %{import_path}/version.GitSHA %{shortcommit}" -v -x "$@"; }
 %else
-function gobuild { go build -a "$@"; }
+function gobuild { go build -a "$@" -ldflags "-s -X %{import_path}/version.GitSHA %{shortcommit}"; }
 %endif
 
 gobuild -o bin/etcd %{import_path}
@@ -261,6 +262,12 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Thu Jun 25 2015 jchaloup <jchaloup@redhat.com> - 2.0.12-2
+- Add restart policy and set LimitNOFILE to/in etcd.service file
+- Update etcd.config file: add new flags and remove depricated
+- Update 'go build' flags for GIT_SHA (used in build script)
+- Don't use 4001 and 7001 ports in etcd.conf, they are replaced with 2379 and 2380
+
 * Wed Jun 24 2015 jchaloup <jchaloup@redhat.com> - 2.0.12-1
 - Update to v2.0.12
 - Polish spec file
