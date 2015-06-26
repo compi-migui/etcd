@@ -20,14 +20,14 @@
 %global provider_tld    com
 %global project         coreos
 %global repo            etcd
-%global commit          5686c33e4b27e905a15ecbe8702dcfc3c270ca76
+%global commit          92e3895214265d213de5b1ff55cddf482f0d1ed5
 %global shortcommit     %(c=%{commit}; echo ${c:0:7})
 
 %global import_path     %{provider}.%{provider_tld}/%{project}/%{repo}
 
 Name:		%{repo}
-Version:	2.0.12
-Release:	2%{?dist}
+Version:	2.0.13
+Release:	1%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{import_path}
@@ -262,6 +262,9 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Fri Jun 26 2015 jchaloup <jchaloup@redhat.com> - 2.0.13-1
+- Update to v2.0.13
+
 * Thu Jun 25 2015 jchaloup <jchaloup@redhat.com> - 2.0.12-2
 - Add restart policy and set LimitNOFILE to/in etcd.service file
 - Update etcd.config file: add new flags and remove depricated
