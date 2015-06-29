@@ -27,7 +27,7 @@
 
 Name:		%{repo}
 Version:	2.0.13
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{import_path}
@@ -143,9 +143,9 @@ export GOPATH=$(pwd):%{gopath}:$GOPATH
 
 %if 0%{?with_debug}
 # *** ERROR: No build ID note found in /.../BUILDROOT/etcd-2.0.0-1.rc1.fc22.x86_64/usr/bin/etcd
-function gobuild { go build -a -ldflags "-B 0x$(head -c20 /dev/urandom|od -An -tx1|tr -d ' \n') -s -X %{import_path}/version.GitSHA %{shortcommit}" -v -x "$@"; }
+function gobuild { go build -a -ldflags "-B 0x$(head -c20 /dev/urandom|od -An -tx1|tr -d ' \n') -X %{import_path}/version.GitSHA %{shortcommit}" -v -x "$@"; }
 %else
-function gobuild { go build -a "$@" -ldflags "-s -X %{import_path}/version.GitSHA %{shortcommit}"; }
+function gobuild { go build -a "$@" -ldflags "-X %{import_path}/version.GitSHA %{shortcommit}"; }
 %endif
 
 gobuild -o bin/etcd %{import_path}
@@ -262,6 +262,11 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Mon Jun 29 2015 jchaloup <jchaloup@redhat.com> - 2.0.13-2
+- Remove -s option from -ldflags string as it removes symbol table
+  'go tool l6' gives explanation of all available options
+  resolves: #1236320
+
 * Fri Jun 26 2015 jchaloup <jchaloup@redhat.com> - 2.0.13-1
 - Update to v2.0.13
 
