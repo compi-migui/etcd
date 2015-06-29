@@ -10,7 +10,7 @@
 %global with_check 0
 %endif
 
-%if 0%{?with_devel}
+%if 0%{?with_debug}
 # https://bugzilla.redhat.com/show_bug.cgi?id=995136#c12
 %global _dwz_low_mem_die_limit 0
 %else
