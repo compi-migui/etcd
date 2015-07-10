@@ -27,7 +27,7 @@
 
 Name:		%{repo}
 Version:	2.0.13
-Release:	2%{?dist}
+Release:	3%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{import_path}
@@ -262,6 +262,9 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Fri Jul 10 2015 jchaloup <jchaloup@redhat.com> - 2.0.13-3
+- set GOMAXPROCS to use all processors available
+
 * Mon Jun 29 2015 jchaloup <jchaloup@redhat.com> - 2.0.13-2
 - Remove -s option from -ldflags string as it removes symbol table
   'go tool l6' gives explanation of all available options
