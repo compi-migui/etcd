@@ -1,7 +1,7 @@
 %if 0%{?fedora}
 %global with_devel 1
 %global with_bundled 0
-%global with_debug 1
+%global with_debug 0
 %global with_check 1
 %else
 %global with_devel 0
@@ -20,14 +20,14 @@
 %global provider_tld    com
 %global project         coreos
 %global repo            etcd
-%global commit          92e3895214265d213de5b1ff55cddf482f0d1ed5
+%global commit          6335fdc595ff03d27007db04e5b545189b9647c6
 %global shortcommit     %(c=%{commit}; echo ${c:0:7})
 
 %global import_path     %{provider}.%{provider_tld}/%{project}/%{repo}
 
 Name:		%{repo}
-Version:	2.0.13
-Release:	4%{?dist}
+Version:	2.1.1
+Release:	1%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{import_path}
@@ -35,19 +35,25 @@ Source0:	https://%{import_path}/archive/v%{version}.tar.gz
 Source1:	%{name}.service
 Source2:	%{name}.conf
 
-%if ! 0%{?with_bundled}
-Patch0: 	etcd-2.0.1-Replace-depricated-ErrWrongType-with-its-local-defin.patch
-%endif
-
 ExclusiveArch:  %{ix86} x86_64 %{arm}
 BuildRequires:	golang >= 1.2.1-3
 %if ! 0%{?with_bundled}
-BuildRequires:	golang(code.google.com/p/gogoprotobuf/proto)
-BuildRequires:	golang(github.com/codegangsta/cli)
-BuildRequires:	golang(github.com/coreos/go-etcd/etcd)
-BuildRequires:  golang(github.com/jonboulle/clockwork)
-BuildRequires:  golang(github.com/stretchr/testify/assert)
-BuildRequires:  golang(golang.org/x/net/context)
+BuildRequires: golang(github.com/bgentry/speakeasy)
+BuildRequires: golang(github.com/boltdb/bolt)
+BuildRequires: golang(github.com/codegangsta/cli)
+BuildRequires: golang(github.com/coreos/go-etcd/etcd)
+BuildRequires: golang(github.com/coreos/go-semver/semver)
+BuildRequires: golang(github.com/coreos/pkg/capnslog)
+BuildRequires: golang(github.com/gogo/protobuf/proto)
+BuildRequires: golang(github.com/google/btree)
+BuildRequires: golang(github.com/jonboulle/clockwork)
+BuildRequires: golang(github.com/prometheus/client_golang/prometheus)
+BuildRequires: golang(github.com/prometheus/procfs)
+BuildRequires: golang(github.com/stretchr/testify/assert)
+BuildRequires: golang(golang.org/x/crypto/bcrypt)
+# tools/functional-tester/etcd-tester/cluster.go:main
+#BuildRequires: golang(golang.org/x/net/context)
+BuildRequires: golang(google.golang.org/grpc)
 %endif
 BuildRequires:	systemd
 Requires(pre):	shadow-utils
@@ -61,41 +67,58 @@ A highly-available key value store for shared configuration.
 %if 0%{?with_devel}
 %package devel
 BuildRequires:  golang >= 1.2.1-3
-BuildRequires:	golang(code.google.com/p/gogoprotobuf/proto)
-BuildRequires:	golang(github.com/codegangsta/cli)
-BuildRequires:	golang(github.com/coreos/go-etcd/etcd)
-BuildRequires:  golang(golang.org/x/net/context)
+BuildRequires:  golang(github.com/bgentry/speakeasy)
+BuildRequires:  golang(github.com/boltdb/bolt)
+BuildRequires:  golang(github.com/coreos/go-etcd/etcd)
+BuildRequires:  golang(github.com/coreos/go-semver/semver)
+BuildRequires:  golang(github.com/coreos/pkg/capnslog)
+BuildRequires:  golang(github.com/gogo/protobuf/proto)
+BuildRequires:  golang(github.com/google/btree)
 BuildRequires:  golang(github.com/jonboulle/clockwork)
+BuildRequires:  golang(github.com/prometheus/client_golang/prometheus)
+BuildRequires:  golang(github.com/prometheus/procfs)
 BuildRequires:  golang(github.com/stretchr/testify/assert)
-Requires: golang(code.google.com/p/gogoprotobuf/proto)
-Requires: golang(github.com/codegangsta/cli)
+BuildRequires:  golang(golang.org/x/crypto/bcrypt)
+BuildRequires:  golang(google.golang.org/grpc)
+
+Requires: golang(github.com/bgentry/speakeasy)
+Requires: golang(github.com/boltdb/bolt)
 Requires: golang(github.com/coreos/go-etcd/etcd)
-Requires: golang(golang.org/x/net/context)
+Requires: golang(github.com/coreos/go-semver/semver)
+Requires: golang(github.com/coreos/pkg/capnslog)
+Requires: golang(github.com/gogo/protobuf/proto)
+Requires: golang(github.com/google/btree)
 Requires: golang(github.com/jonboulle/clockwork)
+Requires: golang(github.com/prometheus/client_golang/prometheus)
+Requires: golang(github.com/prometheus/procfs)
 Requires: golang(github.com/stretchr/testify/assert)
+Requires: golang(golang.org/x/crypto/bcrypt)
+Requires: golang(google.golang.org/grpc)
+
 Provides: golang(%{import_path}/client) = %{version}-%{release}
 Provides: golang(%{import_path}/discovery) = %{version}-%{release}
 Provides: golang(%{import_path}/error) = %{version}-%{release}
 Provides: golang(%{import_path}/etcdctl/command) = %{version}-%{release}
 Provides: golang(%{import_path}/etcdmain) = %{version}-%{release}
 Provides: golang(%{import_path}/etcdserver) = %{version}-%{release}
+Provides: golang(%{import_path}/etcdserver/auth) = %{version}-%{release}
 Provides: golang(%{import_path}/etcdserver/etcdhttp) = %{version}-%{release}
 Provides: golang(%{import_path}/etcdserver/etcdhttp/httptypes) = %{version}-%{release}
 Provides: golang(%{import_path}/etcdserver/etcdserverpb) = %{version}-%{release}
 Provides: golang(%{import_path}/etcdserver/stats) = %{version}-%{release}
 Provides: golang(%{import_path}/integration) = %{version}-%{release}
 Provides: golang(%{import_path}/migrate) = %{version}-%{release}
-Provides: golang(%{import_path}/pkg/coreos) = %{version}-%{release}
+Provides: golang(%{import_path}/migrate/etcd4pb) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/cors) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/crc) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/fileutil) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/flags) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/idutil) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/ioutil) = %{version}-%{release}
-Provides: golang(%{import_path}/pkg/metrics) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/netutil) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/osutil) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/pbutil) = %{version}-%{release}
+Provides: golang(%{import_path}/pkg/runtime) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/testutil) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/timeutil) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/transport) = %{version}-%{release}
@@ -108,7 +131,11 @@ Provides: golang(%{import_path}/raft/rafttest) = %{version}-%{release}
 Provides: golang(%{import_path}/rafthttp) = %{version}-%{release}
 Provides: golang(%{import_path}/snap) = %{version}-%{release}
 Provides: golang(%{import_path}/snap/snappb) = %{version}-%{release}
+Provides: golang(%{import_path}/storage) = %{version}-%{release}
+Provides: golang(%{import_path}/storage/backend) = %{version}-%{release}
+Provides: golang(%{import_path}/storage/storagepb) = %{version}-%{release}
 Provides: golang(%{import_path}/store) = %{version}-%{release}
+Provides: golang(%{import_path}/tools/functional-tester/etcd-agent/client) = %{version}-%{release}
 Provides: golang(%{import_path}/version) = %{version}-%{release}
 Provides: golang(%{import_path}/wal) = %{version}-%{release}
 Provides: golang(%{import_path}/wal/walpb) = %{version}-%{release}
@@ -130,7 +157,6 @@ find . -name "*.go" \
        -print |\
        xargs sed -i 's/github.com\/coreos\/etcd\/Godeps\/_workspace\/src\///g'
 
-%patch0 -p1
 %endif
 
 %build
@@ -177,8 +203,8 @@ install -d -m 0755 %{buildroot}%{_sharedstatedir}/%{name}
 install -d %{buildroot}/%{gopath}/src/%{import_path}
 cp -pav main.go %{buildroot}/%{gopath}/src/%{import_path}/
 for dir in client discovery error etcdctl etcdmain etcdserver \
-        migrate pkg proxy raft rafthttp snap store version wal \
-	integration
+        integration migrate pkg proxy raft rafthttp snap storage \
+        store tools version wal
 do
     cp -rpav ${dir} %{buildroot}/%{gopath}/src/%{import_path}/
 done
@@ -191,12 +217,13 @@ export GOPATH=$(pwd)/Godeps/_workspace:%{gopath}
 %else
 export GOPATH=%{buildroot}%{gopath}:%{gopath}
 %endif
-go test %{import_path}/client
+#go test %{import_path}/client
 go test %{import_path}/discovery
 go test %{import_path}/error
 go test %{import_path}/etcdctl/command
 go test %{import_path}/etcdmain
 #go test %{import_path}/etcdserver
+go test %{import_path}/etcdserver/auth
 #go test %{import_path}/etcdserver/etcdhttp
 #go test %{import_path}/etcdserver/etcdhttp/httptypes
 #go test %{import_path}/integration
@@ -207,7 +234,6 @@ go test %{import_path}/pkg/crc
 go test %{import_path}/pkg/flags
 go test %{import_path}/pkg/idutil
 go test %{import_path}/pkg/ioutil
-go test %{import_path}/pkg/metrics
 go test %{import_path}/pkg/netutil
 go test %{import_path}/pkg/osutil
 go test %{import_path}/pkg/pbutil
@@ -220,7 +246,10 @@ go test %{import_path}/raft
 #go test %{import_path}/raft/rafttest
 go test %{import_path}/rafthttp
 go test %{import_path}/snap
+#go test %{import_path}/storage
+#go test %{import_path}/storage/backend
 #go test %{import_path}/store
+#go test %{import_path}/tools/functional-tester/etcd-agent
 go test %{import_path}/version
 go test %{import_path}/wal
 %endif
@@ -262,9 +291,11 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
-* Mon Jul 20 2015 jchaloup <jchaloup@redhat.com> - 2.0.13-4
+* Mon Jul 20 2015 jchaloup <jchaloup@redhat.com> - 2.1.1-1
 - fix definition of GOPATH for go1.5
 - fix definition of gobuild function for non-debug way
+- Update to v2.1.1
+  resolves: #1214958
 
 * Fri Jul 10 2015 jchaloup <jchaloup@redhat.com> - 2.0.13-3
 - set GOMAXPROCS to use all processors available
