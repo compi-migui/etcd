@@ -1,7 +1,7 @@
 %if 0%{?fedora}
 %global with_devel 1
 %global with_bundled 0
-%global with_debug 0
+%global with_debug 1
 %global with_check 1
 %else
 %global with_devel 0
@@ -27,7 +27,7 @@
 
 Name:		%{repo}
 Version:	2.1.1
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{import_path}
@@ -291,6 +291,10 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Thu Jul 30 2015 jchaloup <jchaloup@redhat.com> - 2.1.1-2
+- Enable debug info again
+  related: #1214958
+
 * Mon Jul 20 2015 jchaloup <jchaloup@redhat.com> - 2.1.1-1
 - fix definition of GOPATH for go1.5
 - fix definition of gobuild function for non-debug way
