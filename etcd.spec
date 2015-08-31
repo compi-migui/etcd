@@ -20,14 +20,14 @@
 %global provider_tld    com
 %global project         coreos
 %global repo            etcd
-%global commit          6335fdc595ff03d27007db04e5b545189b9647c6
+%global commit          ff8d1ecb9f2bf966c0e6929156be4432786b9217
 %global shortcommit     %(c=%{commit}; echo ${c:0:7})
 
 %global import_path     %{provider}.%{provider_tld}/%{project}/%{repo}
 
 Name:		%{repo}
-Version:	2.1.1
-Release:	2%{?dist}
+Version:	2.1.2
+Release:	1%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{import_path}
@@ -69,6 +69,7 @@ A highly-available key value store for shared configuration.
 BuildRequires:  golang >= 1.2.1-3
 BuildRequires:  golang(github.com/bgentry/speakeasy)
 BuildRequires:  golang(github.com/boltdb/bolt)
+BuildRequires:  golang(github.com/codegangsta/cli)
 BuildRequires:  golang(github.com/coreos/go-etcd/etcd)
 BuildRequires:  golang(github.com/coreos/go-semver/semver)
 BuildRequires:  golang(github.com/coreos/pkg/capnslog)
@@ -79,10 +80,12 @@ BuildRequires:  golang(github.com/prometheus/client_golang/prometheus)
 BuildRequires:  golang(github.com/prometheus/procfs)
 BuildRequires:  golang(github.com/stretchr/testify/assert)
 BuildRequires:  golang(golang.org/x/crypto/bcrypt)
+BuildRequires:  golang(golang.org/x/net/context)
 BuildRequires:  golang(google.golang.org/grpc)
 
 Requires: golang(github.com/bgentry/speakeasy)
 Requires: golang(github.com/boltdb/bolt)
+Requires: golang(github.com/codegangsta/cli)
 Requires: golang(github.com/coreos/go-etcd/etcd)
 Requires: golang(github.com/coreos/go-semver/semver)
 Requires: golang(github.com/coreos/pkg/capnslog)
@@ -93,6 +96,7 @@ Requires: golang(github.com/prometheus/client_golang/prometheus)
 Requires: golang(github.com/prometheus/procfs)
 Requires: golang(github.com/stretchr/testify/assert)
 Requires: golang(golang.org/x/crypto/bcrypt)
+Requires: golang(golang.org/x/net/context)
 Requires: golang(google.golang.org/grpc)
 
 Provides: golang(%{import_path}/client) = %{version}-%{release}
@@ -291,6 +295,10 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Mon Aug 31 2015 jchaloup <jchaloup@redhat.com> - 2.1.2-1
+- Update to v2.1.2
+  resolves: #1258599
+
 * Thu Jul 30 2015 jchaloup <jchaloup@redhat.com> - 2.1.1-2
 - Enable debug info again
   related: #1214958
