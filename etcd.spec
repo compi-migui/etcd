@@ -26,7 +26,7 @@
 %global import_path     %{provider}.%{provider_tld}/%{project}/%{repo}
 
 Name:		%{repo}
-Version:	2.1.2
+Version:	2.2.0
 Release:	1%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
@@ -41,18 +41,23 @@ BuildRequires:	golang >= 1.2.1-3
 BuildRequires: golang(github.com/bgentry/speakeasy)
 BuildRequires: golang(github.com/boltdb/bolt)
 BuildRequires: golang(github.com/codegangsta/cli)
-BuildRequires: golang(github.com/coreos/go-etcd/etcd)
 BuildRequires: golang(github.com/coreos/go-semver/semver)
+BuildRequires: golang(github.com/coreos/go-systemd/daemon)
+BuildRequires: golang(github.com/coreos/go-systemd/util)
 BuildRequires: golang(github.com/coreos/pkg/capnslog)
 BuildRequires: golang(github.com/gogo/protobuf/proto)
 BuildRequires: golang(github.com/google/btree)
 BuildRequires: golang(github.com/jonboulle/clockwork)
 BuildRequires: golang(github.com/prometheus/client_golang/prometheus)
 BuildRequires: golang(github.com/prometheus/procfs)
+# used only by tools/v3benchmark/main.go:main
+BuildRequires: golang(github.com/rakyll/pb)
 BuildRequires: golang(github.com/stretchr/testify/assert)
+BuildRequires: golang(github.com/ugorji/go/codec)
+BuildRequires: golang(github.com/xiang90/probing)
 BuildRequires: golang(golang.org/x/crypto/bcrypt)
-# tools/functional-tester/etcd-tester/cluster.go:main
-#BuildRequires: golang(golang.org/x/net/context)
+BuildRequires: golang(golang.org/x/net/context)
+BuildRequires: golang(golang.org/x/net/netutil)
 BuildRequires: golang(google.golang.org/grpc)
 %endif
 BuildRequires:	systemd
@@ -66,12 +71,12 @@ A highly-available key value store for shared configuration.
 
 %if 0%{?with_devel}
 %package devel
-BuildRequires:  golang >= 1.2.1-3
 BuildRequires:  golang(github.com/bgentry/speakeasy)
 BuildRequires:  golang(github.com/boltdb/bolt)
 BuildRequires:  golang(github.com/codegangsta/cli)
-BuildRequires:  golang(github.com/coreos/go-etcd/etcd)
 BuildRequires:  golang(github.com/coreos/go-semver/semver)
+BuildRequires:  golang(github.com/coreos/go-systemd/daemon)
+BuildRequires:  golang(github.com/coreos/go-systemd/util)
 BuildRequires:  golang(github.com/coreos/pkg/capnslog)
 BuildRequires:  golang(github.com/gogo/protobuf/proto)
 BuildRequires:  golang(github.com/google/btree)
@@ -79,15 +84,19 @@ BuildRequires:  golang(github.com/jonboulle/clockwork)
 BuildRequires:  golang(github.com/prometheus/client_golang/prometheus)
 BuildRequires:  golang(github.com/prometheus/procfs)
 BuildRequires:  golang(github.com/stretchr/testify/assert)
+BuildRequires:  golang(github.com/ugorji/go/codec)
+BuildRequires:  golang(github.com/xiang90/probing)
 BuildRequires:  golang(golang.org/x/crypto/bcrypt)
 BuildRequires:  golang(golang.org/x/net/context)
+BuildRequires:  golang(golang.org/x/net/netutil)
 BuildRequires:  golang(google.golang.org/grpc)
 
 Requires: golang(github.com/bgentry/speakeasy)
 Requires: golang(github.com/boltdb/bolt)
 Requires: golang(github.com/codegangsta/cli)
-Requires: golang(github.com/coreos/go-etcd/etcd)
 Requires: golang(github.com/coreos/go-semver/semver)
+Requires: golang(github.com/coreos/go-systemd/daemon)
+Requires: golang(github.com/coreos/go-systemd/util)
 Requires: golang(github.com/coreos/pkg/capnslog)
 Requires: golang(github.com/gogo/protobuf/proto)
 Requires: golang(github.com/google/btree)
@@ -95,32 +104,37 @@ Requires: golang(github.com/jonboulle/clockwork)
 Requires: golang(github.com/prometheus/client_golang/prometheus)
 Requires: golang(github.com/prometheus/procfs)
 Requires: golang(github.com/stretchr/testify/assert)
+Requires: golang(github.com/ugorji/go/codec)
+Requires: golang(github.com/xiang90/probing)
 Requires: golang(golang.org/x/crypto/bcrypt)
 Requires: golang(golang.org/x/net/context)
+Requires: golang(golang.org/x/net/netutil)
 Requires: golang(google.golang.org/grpc)
 
 Provides: golang(%{import_path}/client) = %{version}-%{release}
 Provides: golang(%{import_path}/discovery) = %{version}-%{release}
 Provides: golang(%{import_path}/error) = %{version}-%{release}
 Provides: golang(%{import_path}/etcdctl/command) = %{version}-%{release}
+Provides: golang(%{import_path}/etcdctlv3/command) = %{version}-%{release}
 Provides: golang(%{import_path}/etcdmain) = %{version}-%{release}
 Provides: golang(%{import_path}/etcdserver) = %{version}-%{release}
+Provides: golang(%{import_path}/etcdserver/api/v3rpc) = %{version}-%{release}
 Provides: golang(%{import_path}/etcdserver/auth) = %{version}-%{release}
 Provides: golang(%{import_path}/etcdserver/etcdhttp) = %{version}-%{release}
 Provides: golang(%{import_path}/etcdserver/etcdhttp/httptypes) = %{version}-%{release}
 Provides: golang(%{import_path}/etcdserver/etcdserverpb) = %{version}-%{release}
 Provides: golang(%{import_path}/etcdserver/stats) = %{version}-%{release}
 Provides: golang(%{import_path}/integration) = %{version}-%{release}
-Provides: golang(%{import_path}/migrate) = %{version}-%{release}
-Provides: golang(%{import_path}/migrate/etcd4pb) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/cors) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/crc) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/fileutil) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/flags) = %{version}-%{release}
+Provides: golang(%{import_path}/pkg/httputil) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/idutil) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/ioutil) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/netutil) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/osutil) = %{version}-%{release}
+Provides: golang(%{import_path}/pkg/pathutil) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/pbutil) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/runtime) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/testutil) = %{version}-%{release}
@@ -143,6 +157,7 @@ Provides: golang(%{import_path}/tools/functional-tester/etcd-agent/client) = %{v
 Provides: golang(%{import_path}/version) = %{version}-%{release}
 Provides: golang(%{import_path}/wal) = %{version}-%{release}
 Provides: golang(%{import_path}/wal/walpb) = %{version}-%{release}
+
 Summary:        etcd golang devel libraries
 ExclusiveArch:  %{ix86} x86_64 %{arm}
 
@@ -180,7 +195,6 @@ function gobuild { go build -a -ldflags "-X %{import_path}/version.GitSHA %{shor
 
 gobuild -o bin/etcd %{import_path}
 gobuild -o bin/etcdctl %{import_path}/etcdctl
-gobuild -o bin/etcd-migrate %{import_path}/tools/%{name}-migrate
 %else
 ./build
 %endif
@@ -189,11 +203,6 @@ gobuild -o bin/etcd-migrate %{import_path}/tools/%{name}-migrate
 %install
 install -D -p -m 0755 bin/%{name} %{buildroot}%{_bindir}/%{name}
 install -D -p -m 0755 bin/%{name}ctl %{buildroot}%{_bindir}/%{name}ctl
-%if 0%{?fedora}
-%if ! 0%{?with_bundled}
-install -D -p -m 0755 bin/%{name}-migrate %{buildroot}%{_bindir}/%{name}-migrate
-%endif
-%endif
 install -D -p -m 0644 %{SOURCE1} %{buildroot}%{_unitdir}/%{name}.service
 install -d -m 0755 %{buildroot}%{_sysconfdir}/%{name}
 install -m 644 -t %{buildroot}%{_sysconfdir}/%{name} %{SOURCE2}
@@ -221,6 +230,7 @@ export GOPATH=$(pwd)/Godeps/_workspace:%{gopath}
 %else
 export GOPATH=%{buildroot}%{gopath}:%{gopath}
 %endif
+
 #go test %{import_path}/client
 go test %{import_path}/discovery
 go test %{import_path}/error
@@ -231,7 +241,6 @@ go test %{import_path}/etcdserver/auth
 #go test %{import_path}/etcdserver/etcdhttp
 #go test %{import_path}/etcdserver/etcdhttp/httptypes
 #go test %{import_path}/integration
-go test %{import_path}/migrate
 #go test %{import_path}/pkg/cors
 go test %{import_path}/pkg/crc
 #go test %{import_path}/pkg/fileutil
@@ -240,6 +249,7 @@ go test %{import_path}/pkg/idutil
 go test %{import_path}/pkg/ioutil
 go test %{import_path}/pkg/netutil
 go test %{import_path}/pkg/osutil
+go test %{import_path}/pkg/pathutil
 go test %{import_path}/pkg/pbutil
 go test %{import_path}/pkg/timeutil
 #go test %{import_path}/pkg/transport
@@ -276,11 +286,6 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %config(noreplace) %{_sysconfdir}/%{name}
 %{_bindir}/%{name}
 %{_bindir}/%{name}ctl
-%if 0%{?fedora}
-%if ! 0%{?with_bundled}
-%{_bindir}/%{name}-migrate
-%endif
-%endif
 %dir %attr(-,%{name},%{name}) %{_sharedstatedir}/%{name}
 %{_unitdir}/%{name}.service
 %doc LICENSE README.md Documentation/internal-protocol-versioning.md
@@ -295,6 +300,10 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Fri Sep 11 2015 jchaloup <jchaloup@redhat.com> - 2.2.0-1
+- Update to v2.2.0 (etcd-migrate gone)
+  resolves: #1253864
+
 * Mon Aug 31 2015 jchaloup <jchaloup@redhat.com> - 2.1.2-1
 - Update to v2.1.2
   resolves: #1258599
