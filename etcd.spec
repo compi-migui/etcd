@@ -3,40 +3,44 @@
 %global with_bundled 0
 %global with_debug 1
 %global with_check 1
+%global with_unit_test 1
 %else
 %global with_devel 0
 %global with_bundled 1
 %global with_debug 0
 %global with_check 0
+%global with_unit_test 0
 %endif
 
 %if 0%{?with_debug}
-# https://bugzilla.redhat.com/show_bug.cgi?id=995136#c12
 %global _dwz_low_mem_die_limit 0
 %else
 %global debug_package   %{nil}
 %endif
+
 %global provider        github
 %global provider_tld    com
 %global project         coreos
 %global repo            etcd
+# https://github.com/coreos/etcd
+%global provider_prefix %{provider}.%{provider_tld}/%{project}/%{repo}
+%global import_path     %{provider_prefix}
 %global commit          ff8d1ecb9f2bf966c0e6929156be4432786b9217
 %global shortcommit     %(c=%{commit}; echo ${c:0:7})
-
-%global import_path     %{provider}.%{provider_tld}/%{project}/%{repo}
 
 Name:		%{repo}
 Version:	2.2.0
 Release:	1%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
-URL:		https://%{import_path}
-Source0:	https://%{import_path}/archive/v%{version}.tar.gz
+URL:		https://%{provider_prefix}
+Source0:	https://%{provider_prefix}/archive/v%{version}.tar.gz
 Source1:	%{name}.service
 Source2:	%{name}.conf
 
 ExclusiveArch:  %{ix86} x86_64 %{arm}
 BuildRequires:	golang >= 1.2.1-3
+
 %if ! 0%{?with_bundled}
 BuildRequires: golang(github.com/bgentry/speakeasy)
 BuildRequires: golang(github.com/boltdb/bolt)
@@ -61,6 +65,7 @@ BuildRequires: golang(golang.org/x/net/netutil)
 BuildRequires: golang(google.golang.org/grpc)
 %endif
 BuildRequires:	systemd
+
 Requires(pre):	shadow-utils
 Requires(post): systemd
 Requires(preun): systemd
@@ -71,6 +76,10 @@ A highly-available key value store for shared configuration.
 
 %if 0%{?with_devel}
 %package devel
+Summary:        etcd golang devel libraries
+BuildArch:      noarch
+
+%if 0%{?with_check}
 BuildRequires:  golang(github.com/bgentry/speakeasy)
 BuildRequires:  golang(github.com/boltdb/bolt)
 BuildRequires:  golang(github.com/codegangsta/cli)
@@ -90,6 +99,7 @@ BuildRequires:  golang(golang.org/x/crypto/bcrypt)
 BuildRequires:  golang(golang.org/x/net/context)
 BuildRequires:  golang(golang.org/x/net/netutil)
 BuildRequires:  golang(google.golang.org/grpc)
+%endif
 
 Requires: golang(github.com/bgentry/speakeasy)
 Requires: golang(github.com/boltdb/bolt)
@@ -158,16 +168,34 @@ Provides: golang(%{import_path}/version) = %{version}-%{release}
 Provides: golang(%{import_path}/wal) = %{version}-%{release}
 Provides: golang(%{import_path}/wal/walpb) = %{version}-%{release}
 
-Summary:        etcd golang devel libraries
-ExclusiveArch:  %{ix86} x86_64 %{arm}
-
 %description devel
 golang development libraries for etcd, a highly-available key value store for
 shared configuration.
 %endif
 
+%if 0%{?with_unit_test} && 0%{?with_devel}
+%package unit-test
+Summary:         Unit tests for %{name} package
+# If go_compiler is not set to 1, there is no virtual provide. Use golang instead.
+BuildRequires:  %{?go_compiler:compiler(go-compiler)}%{!?go_compiler:golang}
+
+%if 0%{?with_check}
+#Here comes all BuildRequires: PACKAGE the unit tests
+#in %%check section need for running
+%endif
+
+# test subpackage tests code from devel subpackage
+Requires:        %{name}-devel = %{version}-%{release}
+
+%description unit-test
+%{summary}
+
+This package contains unit tests for project
+providing packages with %{import_path} prefix.
+%endif
+
 %prep
-%setup -qn %{name}-%{version}
+%setup -q n %{name}-%{version}
 %if ! 0%{?with_bundled}
 rm -rf Godeps/_workspace/src/github.com/{codegangsta,coreos,stretchr,jonboulle}
 rm -rf Godeps/_workspace/src/{code.google.com,bitbucket.org,golang.org}
@@ -179,26 +207,28 @@ find . -name "*.go" \
 %endif
 
 %build
-%if ! 0%{?with_bundled}
-# Make link for etcd itself
 mkdir -p src/github.com/coreos
 ln -s ../../../ src/github.com/coreos/etcd
 
+%if ! 0%{?with_bundled}
 export GOPATH=$(pwd):%{gopath}
-
-%if 0%{?with_debug}
-# *** ERROR: No build ID note found in /.../BUILDROOT/etcd-2.0.0-1.rc1.fc22.x86_64/usr/bin/etcd
-function gobuild { go build -a -ldflags "-B 0x$(head -c20 /dev/urandom|od -An -tx1|tr -d ' \n') -X %{import_path}/version.GitSHA %{shortcommit}" -v -x "$@"; }
 %else
-function gobuild { go build -a -ldflags "-X %{import_path}/version.GitSHA %{shortcommit}" "$@"; }
+export GOPATH=%{buildroot}/%{gopath}:$(pwd)/Godeps/_workspace:%{gopath}
+exit 1
 %endif
 
-gobuild -o bin/etcd %{import_path}
-gobuild -o bin/etcdctl %{import_path}/etcdctl
+# Just temporary definition
+%if ! 0%{?gobuild:1}
+%gobuild(o:) go build -ldflags "${LDFLAGS:-} -B 0x$(head -c20 /dev/urandom|od -An -tx1|tr -d ' \\n')" -a -v -x %{?**};
+%endif
+
+%if ! 0%{?with_bundled}
+export LDFLAGS="-X %{import_path}/version.GitSHA %{shortcommit}"
+%gobuild -o bin/etcd %{import_path}
+%gobuild -o bin/etcdctl %{import_path}/etcdctl
 %else
 ./build
 %endif
-
 
 %install
 install -D -p -m 0755 bin/%{name} %{buildroot}%{_bindir}/%{name}
@@ -207,65 +237,85 @@ install -D -p -m 0644 %{SOURCE1} %{buildroot}%{_unitdir}/%{name}.service
 install -d -m 0755 %{buildroot}%{_sysconfdir}/%{name}
 install -m 644 -t %{buildroot}%{_sysconfdir}/%{name} %{SOURCE2}
 
-
 # And create /var/lib/etcd
 install -d -m 0755 %{buildroot}%{_sharedstatedir}/%{name}
 
+# source codes for building projects
 %if 0%{?with_devel}
-# Install files for devel sub-package
-install -d %{buildroot}/%{gopath}/src/%{import_path}
-cp -pav main.go %{buildroot}/%{gopath}/src/%{import_path}/
-for dir in client discovery error etcdctl etcdmain etcdserver \
-        integration migrate pkg proxy raft rafthttp snap storage \
-        store tools version wal
-do
-    cp -rpav ${dir} %{buildroot}/%{gopath}/src/%{import_path}/
+install -d -p %{buildroot}/%{gopath}/src/%{import_path}/
+echo "%%dir %%{gopath}/src/%%{import_path}/." >> devel.file-list
+# find all *.go but no *_test.go files and generate devel.file-list
+for file in $(find . -iname "*.go" \! -iname "*_test.go") ; do
+    echo "%%dir %%{gopath}/src/%%{import_path}/$(dirname $file)" >> devel.file-list
+    install -d -p %{buildroot}/%{gopath}/src/%{import_path}/$(dirname $file)
+    cp -pav $file %{buildroot}/%{gopath}/src/%{import_path}/$file
+    echo "%%{gopath}/src/%%{import_path}/$file" >> devel.file-list
 done
 %endif
 
-%check
-%if 0%{?with_check}
-%if 0%{?with_bundled}
-export GOPATH=$(pwd)/Godeps/_workspace:%{gopath}
-%else
-export GOPATH=%{buildroot}%{gopath}:%{gopath}
+# testing files for this project
+%if 0%{?with_unit_test} && 0%{?with_devel}
+install -d -p %{buildroot}/%{gopath}/src/%{import_path}/
+# find all *_test.go files and generate unit-test.file-list
+for file in $(find . -iname "*_test.go"); do
+    echo "%%dir %%{gopath}/src/%%{import_path}/$(dirname $file)" >> devel.file-list
+    install -d -p %{buildroot}/%{gopath}/src/%{import_path}/$(dirname $file)
+    cp -pav $file %{buildroot}/%{gopath}/src/%{import_path}/$file
+    echo "%%{gopath}/src/%%{import_path}/$file" >> unit-test.file-list
+done
 %endif
 
-#go test %{import_path}/client
-go test %{import_path}/discovery
-go test %{import_path}/error
-go test %{import_path}/etcdctl/command
-go test %{import_path}/etcdmain
-#go test %{import_path}/etcdserver
-go test %{import_path}/etcdserver/auth
-#go test %{import_path}/etcdserver/etcdhttp
-#go test %{import_path}/etcdserver/etcdhttp/httptypes
-#go test %{import_path}/integration
-#go test %{import_path}/pkg/cors
-go test %{import_path}/pkg/crc
-#go test %{import_path}/pkg/fileutil
-go test %{import_path}/pkg/flags
-go test %{import_path}/pkg/idutil
-go test %{import_path}/pkg/ioutil
-go test %{import_path}/pkg/netutil
-go test %{import_path}/pkg/osutil
-go test %{import_path}/pkg/pathutil
-go test %{import_path}/pkg/pbutil
-go test %{import_path}/pkg/timeutil
-#go test %{import_path}/pkg/transport
-go test %{import_path}/pkg/types
-go test %{import_path}/pkg/wait
-go test %{import_path}/proxy
-go test %{import_path}/raft
-#go test %{import_path}/raft/rafttest
-go test %{import_path}/rafthttp
-go test %{import_path}/snap
-#go test %{import_path}/storage
-#go test %{import_path}/storage/backend
-#go test %{import_path}/store
-#go test %{import_path}/tools/functional-tester/etcd-agent
-go test %{import_path}/version
-go test %{import_path}/wal
+%if 0%{?with_devel}
+sort -u -o devel.file-list devel.file-list
+%endif
+
+%check
+%if 0%{?with_check} && 0%{?with_unit_test} && 0%{?with_devel}
+%if ! 0%{?with_bundled}
+export GOPATH=%{buildroot}/%{gopath}:%{gopath}
+%else
+export GOPATH=%{buildroot}/%{gopath}:$(pwd)/Godeps/_workspace:%{gopath}
+%endif
+
+%if ! 0%{?gotest:1}
+%global gotest go test
+%endif
+
+#%gotest %{import_path}/client
+%gotest %{import_path}/discovery
+%gotest %{import_path}/error
+%gotest %{import_path}/etcdctl/command
+%gotest %{import_path}/etcdmain
+#%gotest %{import_path}/etcdserver
+%gotest %{import_path}/etcdserver/auth
+#%gotest %{import_path}/etcdserver/etcdhttp
+#%gotest %{import_path}/etcdserver/etcdhttp/httptypes
+#%gotest %{import_path}/integration
+#%gotest %{import_path}/pkg/cors
+%gotest %{import_path}/pkg/crc
+#%gotest %{import_path}/pkg/fileutil
+%gotest %{import_path}/pkg/flags
+%gotest %{import_path}/pkg/idutil
+%gotest %{import_path}/pkg/ioutil
+%gotest %{import_path}/pkg/netutil
+%gotest %{import_path}/pkg/osutil
+%gotest %{import_path}/pkg/pathutil
+%gotest %{import_path}/pkg/pbutil
+%gotest %{import_path}/pkg/timeutil
+#%gotest %{import_path}/pkg/transport
+%gotest %{import_path}/pkg/types
+%gotest %{import_path}/pkg/wait
+%gotest %{import_path}/proxy
+%gotest %{import_path}/raft
+#%gotest %{import_path}/raft/rafttest
+%gotest %{import_path}/rafthttp
+%gotest %{import_path}/snap
+#%gotest %{import_path}/storage
+#%gotest %{import_path}/storage/backend
+#%gotest %{import_path}/store
+#%gotest %{import_path}/tools/functional-tester/etcd-agent
+%gotest %{import_path}/version
+%gotest %{import_path}/wal
 %endif
 
 %pre
@@ -282,26 +332,37 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %postun
 %systemd_postun %{name}.service
 
+#define license tag if not already defined
+%{!?_licensedir:%global license %doc}
+
 %files
+%license LICENSE
+%doc README.md Documentation/internal-protocol-versioning.md
+%doc Godeps/Godeps.json
 %config(noreplace) %{_sysconfdir}/%{name}
 %{_bindir}/%{name}
 %{_bindir}/%{name}ctl
 %dir %attr(-,%{name},%{name}) %{_sharedstatedir}/%{name}
 %{_unitdir}/%{name}.service
-%doc LICENSE README.md Documentation/internal-protocol-versioning.md
-%doc Godeps/Godeps.json
 
 %if 0%{?with_devel}
-%files devel
-%doc LICENSE README.md Documentation/internal-protocol-versioning.md
-%dir %{gopath}/src/%{provider}.%{provider_tld}/%{project}
-%{gopath}/src/%{import_path}
+%files devel -f devel.file-list
+%license LICENSE
+%doc README.md Documentation/internal-protocol-versioning.md
 %doc Godeps/Godeps.json
+%dir %{gopath}/src/%{provider}.%{provider_tld}/%{project}
+%endif
+
+%if 0%{?with_unit_test}
+%files unit-test -f unit-test.file-list
+%license LICENSE
+%doc README.md Documentation/internal-protocol-versioning.md
 %endif
 
 %changelog
 * Fri Sep 11 2015 jchaloup <jchaloup@redhat.com> - 2.2.0-1
 - Update to v2.2.0 (etcd-migrate gone)
+- Update to spec-2.1
   resolves: #1253864
 
 * Mon Aug 31 2015 jchaloup <jchaloup@redhat.com> - 2.1.2-1
