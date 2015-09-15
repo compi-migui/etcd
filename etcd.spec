@@ -214,7 +214,6 @@ ln -s ../../../ src/github.com/coreos/etcd
 export GOPATH=$(pwd):%{gopath}
 %else
 export GOPATH=%{buildroot}/%{gopath}:$(pwd)/Godeps/_workspace:%{gopath}
-exit 1
 %endif
 
 # Just temporary definition
