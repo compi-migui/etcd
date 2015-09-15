@@ -216,11 +216,6 @@ export GOPATH=$(pwd):%{gopath}
 export GOPATH=%{buildroot}/%{gopath}:$(pwd)/Godeps/_workspace:%{gopath}
 %endif
 
-# Just temporary definition
-%if ! 0%{?gobuild:1}
-%gobuild(o:) go build -ldflags "${LDFLAGS:-} -B 0x$(head -c20 /dev/urandom|od -An -tx1|tr -d ' \\n')" -a -v -x %{?**};
-%endif
-
 %if ! 0%{?with_bundled}
 export LDFLAGS="-X %{import_path}/version.GitSHA %{shortcommit}"
 %gobuild -o bin/etcd %{import_path}
