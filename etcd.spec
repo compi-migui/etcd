@@ -25,11 +25,11 @@
 # https://github.com/coreos/etcd
 %global provider_prefix %{provider}.%{provider_tld}/%{project}/%{repo}
 %global import_path     %{provider_prefix}
-%global commit          ff8d1ecb9f2bf966c0e6929156be4432786b9217
+%global commit          75f8282eef351ed09ab29f362a92001bd9b10bf3
 %global shortcommit     %(c=%{commit}; echo ${c:0:7})
 
 Name:		%{repo}
-Version:	2.2.0
+Version:	2.2.1
 Release:	1%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
@@ -354,6 +354,10 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Fri Oct 16 2015 jchaloup <jchaloup@redhat.com> - 2.2.1-1
+- Update to v2.2.1
+  resolves: #1272438
+
 * Fri Sep 11 2015 jchaloup <jchaloup@redhat.com> - 2.2.0-1
 - Update to v2.2.0 (etcd-migrate gone)
 - Update to spec-2.1
