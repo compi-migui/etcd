@@ -3,7 +3,7 @@ Description=Etcd Server
 After=network.target
 
 [Service]
-Type=simple
+Type=notify
 WorkingDirectory=/var/lib/etcd/
 EnvironmentFile=-/etc/etcd/etcd.conf
 User=etcd
