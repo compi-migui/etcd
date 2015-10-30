@@ -30,7 +30,7 @@
 
 Name:		%{repo}
 Version:	2.2.1
-Release:	2%{?dist}
+Release:	3%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{provider_prefix}
@@ -354,6 +354,10 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Fri Oct 30 2015 jchaloup <jchaloup@redhat.com> - 2.2.1-3
+- Add After=network-online.target and Wants=network-online.target
+  to etcd.service
+
 * Tue Oct 20 2015 jchaloup <jchaloup@redhat.com> - 2.2.1-2
 - Set Type=notify instead of simple in etcd.service (upstream #1576)
   related: #1272438
