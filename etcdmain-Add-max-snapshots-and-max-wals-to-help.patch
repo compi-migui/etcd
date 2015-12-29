@@ -1,0 +1,41 @@
+From ddc4f8bd4501826e4c551952a96fcca6dd25bf64 Mon Sep 17 00:00:00 2001
+From: Yiqiao Pu <ypu@redhat.com>
+Date: Wed, 18 Nov 2015 17:54:46 +0800
+Subject: [PATCH] etcdmain: Add max-snapshots and max-wals to help
+
+Based on the configuration doc, seems these two flags are missing
+in the help. So add them and the descriptions are from config.go in
+the same directory.
+
+Signed-off-by: Yiqiao Pu <ypu@redhat.com>
+---
+ etcdmain/help.go | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/etcdmain/help.go b/etcdmain/help.go
+index e233320..fd23d59 100644
+--- a/etcdmain/help.go
++++ b/etcdmain/help.go
+@@ -14,6 +14,8 @@
+ 
+ package etcdmain
+ 
++import "strconv"
++
+ var (
+ 	usageline = `usage: etcd [flags]
+        start an etcd server
+@@ -43,6 +45,10 @@ member flags:
+ 		list of URLs to listen on for peer traffic.
+ 	--listen-client-urls 'http://localhost:2379,http://localhost:4001'
+ 		list of URLs to listen on for client traffic.
++	--max-snapshots '` + strconv.Itoa(defaultMaxSnapshots) + `'
++		maximum number of snapshot files to retain (0 is unlimited).
++	--max-wals '` + strconv.Itoa(defaultMaxWALs) + `'
++		maximum number of wal files to retain (0 is unlimited).
+ 	-cors ''
+ 		comma-separated whitelist of origins for CORS (cross-origin resource sharing).
+ 
+-- 
+1.9.3
+
