@@ -25,12 +25,12 @@
 # https://github.com/coreos/etcd
 %global provider_prefix %{provider}.%{provider_tld}/%{project}/%{repo}
 %global import_path     %{provider_prefix}
-%global commit          75f8282eef351ed09ab29f362a92001bd9b10bf3
+%global commit          05b564a39413a9debafb24420de87febf34fa013
 %global shortcommit     %(c=%{commit}; echo ${c:0:7})
 
 Name:		%{repo}
-Version:	2.2.2
-Release:	2%{?dist}
+Version:	2.2.3
+Release:	1%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{provider_prefix}
@@ -357,6 +357,10 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Fri Jan 08 2016 jchaloup <jchaloup@redhat.com> - 2.2.3-1
+- Update to v2.2.3
+  resolves: #1296809
+
 * Tue Dec 29 2015 jchaloup <jchaloup@redhat.com> - 2.2.2-2
 - add missing options to etcd help (thanks to Joy Pu ypu@redhat.com)
 - add more information when running etcd as a service
