@@ -29,7 +29,7 @@
 %global shortcommit     %(c=%{commit}; echo ${c:0:7})
 
 Name:		%{repo}
-Version:	2.2.3
+Version:	2.2.4
 Release:	1%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
@@ -63,7 +63,6 @@ BuildRequires: golang(github.com/ugorji/go/codec)
 BuildRequires: golang(github.com/xiang90/probing)
 BuildRequires: golang(golang.org/x/crypto/bcrypt)
 BuildRequires: golang(golang.org/x/net/context)
-BuildRequires: golang(golang.org/x/net/netutil)
 BuildRequires: golang(google.golang.org/grpc)
 %endif
 BuildRequires:	systemd
@@ -99,7 +98,6 @@ BuildRequires:  golang(github.com/ugorji/go/codec)
 BuildRequires:  golang(github.com/xiang90/probing)
 BuildRequires:  golang(golang.org/x/crypto/bcrypt)
 BuildRequires:  golang(golang.org/x/net/context)
-BuildRequires:  golang(golang.org/x/net/netutil)
 BuildRequires:  golang(google.golang.org/grpc)
 %endif
 
@@ -120,7 +118,6 @@ Requires: golang(github.com/ugorji/go/codec)
 Requires: golang(github.com/xiang90/probing)
 Requires: golang(golang.org/x/crypto/bcrypt)
 Requires: golang(golang.org/x/net/context)
-Requires: golang(golang.org/x/net/netutil)
 Requires: golang(google.golang.org/grpc)
 
 Provides: golang(%{import_path}/client) = %{version}-%{release}
@@ -357,6 +354,10 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Thu Jan 21 2016 jchaloup <jchaloup@redhat.com> - 2.2.4-1
+- Update to v2.2.4
+  resolves: #1300558
+
 * Fri Jan 08 2016 jchaloup <jchaloup@redhat.com> - 2.2.3-1
 - Update to v2.2.3
   resolves: #1296809
