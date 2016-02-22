@@ -30,7 +30,7 @@
 
 Name:		%{repo}
 Version:	2.2.5
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{provider_prefix}
@@ -354,6 +354,9 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Mon Feb 22 2016 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.2.5-2
+- https://fedoraproject.org/wiki/Changes/golang1.6
+
 * Thu Feb 18 2016 jchaloup <jchaloup@redhat.com> - 2.2.5-1
 - Update to v2.2.5
 
