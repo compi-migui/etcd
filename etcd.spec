@@ -194,7 +194,7 @@ providing packages with %{import_path} prefix.
 %endif
 
 %prep
-%setup -q n %{name}-%{version}
+%setup -q -n %{name}-%{version}
 %if ! 0%{?with_bundled}
 rm -rf Godeps/_workspace/src/github.com/{codegangsta,coreos,stretchr,jonboulle}
 rm -rf Godeps/_workspace/src/{code.google.com,bitbucket.org,golang.org}
