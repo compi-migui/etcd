@@ -30,7 +30,7 @@
 
 Name:		%{repo}
 Version:	2.2.5
-Release:	2%{?dist}
+Release:	3%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{provider_prefix}
@@ -40,8 +40,10 @@ Source2:	%{name}.conf
 
 Patch0:         etcdmain-Add-max-snapshots-and-max-wals-to-help.patch
 
-ExclusiveArch:  %{ix86} x86_64 %{arm}
-BuildRequires:	golang >= 1.2.1-3
+# e.g. el6 has ppc64 arch without gcc-go, so EA tag is required
+ExclusiveArch:  %{?go_arches:%{go_arches}}%{!?go_arches:%{ix86} x86_64 %{arm}}
+# If go_compiler is not set to 1, there is no virtual provide. Use golang instead.
+BuildRequires:  %{?go_compiler:compiler(go-compiler)}%{!?go_compiler:golang}
 
 %if ! 0%{?with_bundled}
 BuildRequires: golang(github.com/bgentry/speakeasy)
@@ -354,6 +356,10 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Tue Mar 08 2016 jchaloup <jchaloup@redhat.com> - 2.2.5-3
+- Extend archs to all supported
+  resolves: #1315419
+
 * Mon Feb 22 2016 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 2.2.5-2
 - https://fedoraproject.org/wiki/Changes/golang1.6
 
