@@ -30,7 +30,7 @@
 
 Name:		%{repo}
 Version:	2.2.5
-Release:	3%{?dist}
+Release:	4%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{provider_prefix}
@@ -41,7 +41,7 @@ Source2:	%{name}.conf
 Patch0:         etcdmain-Add-max-snapshots-and-max-wals-to-help.patch
 
 # e.g. el6 has ppc64 arch without gcc-go, so EA tag is required
-ExclusiveArch:  %{?go_arches:%{go_arches}}%{!?go_arches:%{ix86} x86_64 %{arm}}
+ExclusiveArch:  %{ix86} x86_64 %{arm} ppc64le
 # If go_compiler is not set to 1, there is no virtual provide. Use golang instead.
 BuildRequires:  %{?go_compiler:compiler(go-compiler)}%{!?go_compiler:golang}
 
@@ -356,6 +356,10 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Wed Mar 09 2016 jchaloup <jchaloup@redhat.com> - 2.2.5-4
+- Only ppc64le is supported, ppc64 not
+  related: #1315419
+
 * Tue Mar 08 2016 jchaloup <jchaloup@redhat.com> - 2.2.5-3
 - Extend archs to all supported
   resolves: #1315419
