@@ -1,0 +1,34 @@
+From 1724bd58d14d9bb86553d06f7e90f6ee88f557e2 Mon Sep 17 00:00:00 2001
+From: Jan Chaloupka <jchaloup@redhat.com>
+Date: Wed, 23 Mar 2016 14:10:29 +0100
+Subject: [PATCH] e2e: sleep for a while to let etcd procs start
+
+---
+ e2e/etcd_test.go | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/e2e/etcd_test.go b/e2e/etcd_test.go
+index 5fde84e..41a5095 100644
+--- a/e2e/etcd_test.go
++++ b/e2e/etcd_test.go
+@@ -23,6 +23,7 @@ import (
+ 	"path"
+ 	"strings"
+ 	"testing"
++	"time"
+ 
+ 	"github.com/coreos/etcd/pkg/fileutil"
+ 	"github.com/coreos/etcd/pkg/testutil"
+@@ -197,6 +198,9 @@ func newEtcdProcessCluster(cfg *etcdProcessClusterConfig) (*etcdProcessCluster,
+ 		epc.procs[i] = proc
+ 	}
+ 
++	// Give it some time for etcd procs to start
++	time.Sleep(2 * time.Second)
++
+ 	// wait for cluster to start
+ 	readyC := make(chan error, cfg.clusterSize+cfg.proxySize)
+ 	readyStr := "etcdserver: set the initial cluster version to"
+-- 
+1.9.3
+

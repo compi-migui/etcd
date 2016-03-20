@@ -1,0 +1,54 @@
+From bedf2363bccc8e466e2ca20e8dbc678c036ca1b4 Mon Sep 17 00:00:00 2001
+From: Jan Chaloupka <jchaloup@redhat.com>
+Date: Wed, 23 Mar 2016 13:42:00 +0100
+Subject: [PATCH] make etcd bin path configurable
+
+---
+ e2e/etcd_test.go | 14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/e2e/etcd_test.go b/e2e/etcd_test.go
+index 05410bd..5fde84e 100644
+--- a/e2e/etcd_test.go
++++ b/e2e/etcd_test.go
+@@ -20,12 +20,13 @@ import (
+ 	"math/rand"
+ 	"net/url"
+ 	"os"
++	"path"
+ 	"strings"
+ 	"testing"
+ 
+-	"github.com/coreos/gexpect"
+ 	"github.com/coreos/etcd/pkg/fileutil"
+ 	"github.com/coreos/etcd/pkg/testutil"
++	"github.com/coreos/gexpect"
+ )
+ 
+ const (
+@@ -230,13 +231,20 @@ func newEtcdProcessCluster(cfg *etcdProcessClusterConfig) (*etcdProcessCluster,
+ }
+ 
+ func newEtcdProcess(cfg *etcdProcessConfig) (*etcdProcess, error) {
+-	if fileutil.Exist("../bin/etcd") == false {
++	binPath := os.Getenv("BIN_PATH")
++	if binPath == "" {
++		binPath = "../bin"
++	}
++
++	etcdBinPath := path.Join(binPath, "etcd")
++
++	if fileutil.Exist(etcdBinPath) == false {
+ 		return nil, fmt.Errorf("could not find etcd binary")
+ 	}
+ 	if err := os.RemoveAll(cfg.dataDirPath); err != nil {
+ 		return nil, err
+ 	}
+-	child, err := spawnCmd(append([]string{"../bin/etcd"}, cfg.args...))
++	child, err := spawnCmd(append([]string{etcdBinPath}, cfg.args...))
+ 	if err != nil {
+ 		return nil, err
+ 	}
+-- 
+1.9.3
+
