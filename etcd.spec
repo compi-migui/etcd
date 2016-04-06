@@ -32,7 +32,7 @@
 
 Name:		%{repo}
 Version:	2.3.1
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{provider_prefix}
@@ -242,8 +242,6 @@ find . -name "*.go" \
        xargs sed -i 's/github.com\/coreos\/etcd\/Godeps\/_workspace\/src\///g'
 
 %endif
-%patch0 -p1
-%patch1 -p1
 
 %build
 mkdir -p src/github.com/coreos
@@ -411,6 +409,9 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Wed Apr 06 2016 jchaloup <jchaloup@redhat.com> - 2.3.1-2
+- Don't apply patch (for tests only which are disabled atm)
+
 * Mon Apr 04 2016 jchaloup <jchaloup@redhat.com> - 2.3.1-1
 - Update to v.2.3.1
   resolves: #1323375
