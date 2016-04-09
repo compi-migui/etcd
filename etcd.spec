@@ -36,7 +36,7 @@
 
 Name:		%{repo}
 Version:	2.3.1
-Release:	2%{?dist}
+Release:	3%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{provider_prefix}
@@ -47,7 +47,7 @@ Patch0:         make-etcd-bin-path-configurable.patch
 Patch1:         e2e-sleep-for-a-while-to-let-etcd-procs-start.patch
 
 # e.g. el6 has ppc64 arch without gcc-go, so EA tag is required
-ExclusiveArch:  %{ix86} x86_64 %{arm} ppc64le
+ExclusiveArch:  %{ix86} x86_64 %{arm} aarch64 ppc64le
 # If go_compiler is not set to 1, there is no virtual provide. Use golang instead.
 BuildRequires:  %{?go_compiler:compiler(go-compiler)}%{!?go_compiler:golang}
 
@@ -413,6 +413,9 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Sat Apr  9 2016 Peter Robinson <pbrobinson@fedoraproject.org> 2.3.1-3
+- Enable aarch64
+
 * Wed Apr 06 2016 jchaloup <jchaloup@redhat.com> - 2.3.1-2
 - Don't apply patch (for tests only which are disabled atm)
 
