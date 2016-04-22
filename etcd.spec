@@ -31,12 +31,12 @@
 # https://github.com/coreos/etcd
 %global provider_prefix %{provider}.%{provider_tld}/%{project}/%{repo}
 %global import_path     %{provider_prefix}
-%global commit          2b67f5256a25b79603290e0a401a76f0e551d8c1
+%global commit          ce63f107382080fda29ed124249b16bfea224dc0
 %global shortcommit     %(c=%{commit}; echo ${c:0:7})
 
 Name:		%{repo}
-Version:	2.3.1
-Release:	3%{?dist}
+Version:	2.3.2
+Release:	1%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{provider_prefix}
@@ -413,6 +413,10 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Fri Apr 22 2016 jchaloup <jchaloup@redhat.com> - 2.3.2-1
+- Update to v2.3.2
+  resolves: #1329438
+
 * Sat Apr  9 2016 Peter Robinson <pbrobinson@fedoraproject.org> 2.3.1-3
 - Enable aarch64
 
