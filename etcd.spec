@@ -31,12 +31,12 @@
 # https://github.com/coreos/etcd
 %global provider_prefix %{provider}.%{provider_tld}/%{project}/%{repo}
 %global import_path     %{provider_prefix}
-%global commit          c41345d393002e87ae9e7023234b1c1e04ba9626
+%global commit          ffd1fa6f52dd17332ec5849d1af3314828a6bd56
 %global shortcommit     %(c=%{commit}; echo ${c:0:7})
 
 Name:		%{repo}
-Version:	2.3.3
-Release:	1%{?dist}
+Version:	3.0.0
+Release:	0.1.beta0%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{provider_prefix}
@@ -45,6 +45,7 @@ Source1:	%{name}.service
 Source2:	%{name}.conf
 Patch0:         make-etcd-bin-path-configurable.patch
 Patch1:         e2e-sleep-for-a-while-to-let-etcd-procs-start.patch
+Patch2:         0001-change-import-paths.patch
 
 # e.g. el6 has ppc64 arch without gcc-go, so EA tag is required
 ExclusiveArch:  %{ix86} x86_64 %{arm} aarch64 ppc64le
@@ -56,14 +57,18 @@ BuildRequires: golang(github.com/akrennmair/gopcap)
 BuildRequires: golang(github.com/bgentry/speakeasy)
 BuildRequires: golang(github.com/boltdb/bolt)
 BuildRequires: golang(github.com/cheggaaa/pb)
+BuildRequires: golang(github.com/cockroachdb/cmux)
 BuildRequires: golang(github.com/codegangsta/cli)
 BuildRequires: golang(github.com/coreos/go-semver/semver)
 BuildRequires: golang(github.com/coreos/go-systemd/daemon)
 BuildRequires: golang(github.com/coreos/go-systemd/util)
 BuildRequires: golang(github.com/coreos/pkg/capnslog)
+BuildRequires: golang(github.com/dustin/go-humanize)
+BuildRequires: golang(github.com/ghodss/yaml)
 BuildRequires: golang(github.com/gogo/protobuf/proto)
 BuildRequires: golang(github.com/google/btree)
 BuildRequires: golang(github.com/jonboulle/clockwork)
+BuildRequires: golang(github.com/kr/pty)
 BuildRequires: golang(github.com/olekukonko/tablewriter)
 BuildRequires: golang(github.com/prometheus/client_golang/prometheus)
 BuildRequires: golang(github.com/prometheus/procfs)
@@ -74,10 +79,12 @@ BuildRequires: golang(github.com/ugorji/go/codec)
 BuildRequires: golang(github.com/xiang90/probing)
 BuildRequires: golang(golang.org/x/crypto/bcrypt)
 BuildRequires: golang(golang.org/x/net/context)
+BuildRequires: golang(golang.org/x/net/http2)
 BuildRequires: golang(google.golang.org/grpc)
 BuildRequires: golang(google.golang.org/grpc/codes)
 BuildRequires: golang(google.golang.org/grpc/credentials)
 BuildRequires: golang(google.golang.org/grpc/grpclog)
+BuildRequires: golang(google.golang.org/grpc/transport)
 %endif
 
 BuildRequires:	systemd
@@ -96,54 +103,70 @@ Summary:        etcd golang devel libraries
 BuildArch:      noarch
 
 %if 0%{?with_check}
+BuildRequires: golang(github.com/cheggaaa/pb)
 BuildRequires: golang(github.com/bgentry/speakeasy)
 BuildRequires: golang(github.com/boltdb/bolt)
-BuildRequires: golang(github.com/cheggaaa/pb)
+BuildRequires: golang(github.com/cockroachdb/cmux)
 BuildRequires: golang(github.com/codegangsta/cli)
 BuildRequires: golang(github.com/coreos/go-semver/semver)
 BuildRequires: golang(github.com/coreos/go-systemd/daemon)
 BuildRequires: golang(github.com/coreos/go-systemd/util)
 BuildRequires: golang(github.com/coreos/pkg/capnslog)
+BuildRequires: golang(github.com/dustin/go-humanize)
+BuildRequires: golang(github.com/ghodss/yaml)
 BuildRequires: golang(github.com/gogo/protobuf/proto)
 BuildRequires: golang(github.com/google/btree)
 BuildRequires: golang(github.com/jonboulle/clockwork)
+BuildRequires: golang(github.com/kr/pty)
 BuildRequires: golang(github.com/olekukonko/tablewriter)
 BuildRequires: golang(github.com/prometheus/client_golang/prometheus)
 BuildRequires: golang(github.com/prometheus/procfs)
 BuildRequires: golang(github.com/spf13/cobra)
+BuildRequires: golang(github.com/spf13/pflag)
 BuildRequires: golang(github.com/ugorji/go/codec)
 BuildRequires: golang(github.com/xiang90/probing)
 BuildRequires: golang(golang.org/x/crypto/bcrypt)
 BuildRequires: golang(golang.org/x/net/context)
+BuildRequires: golang(golang.org/x/net/http2)
 BuildRequires: golang(google.golang.org/grpc)
 BuildRequires: golang(google.golang.org/grpc/codes)
 BuildRequires: golang(google.golang.org/grpc/credentials)
+BuildRequires: golang(google.golang.org/grpc/grpclog)
 %endif
 
+Requires: golang(github.com/cheggaaa/pb)
 Requires: golang(github.com/bgentry/speakeasy)
 Requires: golang(github.com/boltdb/bolt)
-Requires: golang(github.com/cheggaaa/pb)
+Requires: golang(github.com/cockroachdb/cmux)
 Requires: golang(github.com/codegangsta/cli)
 Requires: golang(github.com/coreos/go-semver/semver)
 Requires: golang(github.com/coreos/go-systemd/daemon)
 Requires: golang(github.com/coreos/go-systemd/util)
 Requires: golang(github.com/coreos/pkg/capnslog)
+Requires: golang(github.com/dustin/go-humanize)
+Requires: golang(github.com/ghodss/yaml)
 Requires: golang(github.com/gogo/protobuf/proto)
 Requires: golang(github.com/google/btree)
 Requires: golang(github.com/jonboulle/clockwork)
+Requires: golang(github.com/kr/pty)
 Requires: golang(github.com/olekukonko/tablewriter)
 Requires: golang(github.com/prometheus/client_golang/prometheus)
 Requires: golang(github.com/prometheus/procfs)
 Requires: golang(github.com/spf13/cobra)
+Requires: golang(github.com/spf13/pflag)
 Requires: golang(github.com/ugorji/go/codec)
 Requires: golang(github.com/xiang90/probing)
 Requires: golang(golang.org/x/crypto/bcrypt)
 Requires: golang(golang.org/x/net/context)
+Requires: golang(golang.org/x/net/http2)
 Requires: golang(google.golang.org/grpc)
 Requires: golang(google.golang.org/grpc/codes)
 Requires: golang(google.golang.org/grpc/credentials)
+Requires: golang(google.golang.org/grpc/grpclog)
 
+Provides: golang(%{import_path}/alarm) = %{version}-%{release}
 Provides: golang(%{import_path}/auth) = %{version}-%{release}
+Provides: golang(%{import_path}/auth/authpb) = %{version}-%{release}
 Provides: golang(%{import_path}/client) = %{version}-%{release}
 Provides: golang(%{import_path}/clientv3) = %{version}-%{release}
 Provides: golang(%{import_path}/clientv3/concurrency) = %{version}-%{release}
@@ -154,25 +177,33 @@ Provides: golang(%{import_path}/contrib/recipes) = %{version}-%{release}
 Provides: golang(%{import_path}/discovery) = %{version}-%{release}
 Provides: golang(%{import_path}/e2e) = %{version}-%{release}
 Provides: golang(%{import_path}/error) = %{version}-%{release}
-Provides: golang(%{import_path}/etcdctl/command) = %{version}-%{release}
-Provides: golang(%{import_path}/etcdctlv3/command) = %{version}-%{release}
+Provides: golang(%{import_path}/etcdctl/ctlv2) = %{version}-%{release}
+Provides: golang(%{import_path}/etcdctl/ctlv2/command) = %{version}-%{release}
+Provides: golang(%{import_path}/etcdctl/ctlv3) = %{version}-%{release}
+Provides: golang(%{import_path}/etcdctl/ctlv3/command) = %{version}-%{release}
 Provides: golang(%{import_path}/etcdmain) = %{version}-%{release}
 Provides: golang(%{import_path}/etcdserver) = %{version}-%{release}
+Provides: golang(%{import_path}/etcdserver/api) = %{version}-%{release}
+Provides: golang(%{import_path}/etcdserver/api/v2http) = %{version}-%{release}
+Provides: golang(%{import_path}/etcdserver/api/v2http/httptypes) = %{version}-%{release}
 Provides: golang(%{import_path}/etcdserver/api/v3rpc) = %{version}-%{release}
 Provides: golang(%{import_path}/etcdserver/api/v3rpc/rpctypes) = %{version}-%{release}
 Provides: golang(%{import_path}/etcdserver/auth) = %{version}-%{release}
-Provides: golang(%{import_path}/etcdserver/etcdhttp) = %{version}-%{release}
-Provides: golang(%{import_path}/etcdserver/etcdhttp/httptypes) = %{version}-%{release}
 Provides: golang(%{import_path}/etcdserver/etcdserverpb) = %{version}-%{release}
+Provides: golang(%{import_path}/etcdserver/membership) = %{version}-%{release}
 Provides: golang(%{import_path}/etcdserver/stats) = %{version}-%{release}
 Provides: golang(%{import_path}/integration) = %{version}-%{release}
 Provides: golang(%{import_path}/lease) = %{version}-%{release}
 Provides: golang(%{import_path}/lease/leasehttp) = %{version}-%{release}
 Provides: golang(%{import_path}/lease/leasepb) = %{version}-%{release}
+Provides: golang(%{import_path}/mvcc) = %{version}-%{release}
+Provides: golang(%{import_path}/mvcc/backend) = %{version}-%{release}
+Provides: golang(%{import_path}/mvcc/mvccpb) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/adt) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/contention) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/cors) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/crc) = %{version}-%{release}
+Provides: golang(%{import_path}/pkg/expect) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/fileutil) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/flags) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/httputil) = %{version}-%{release}
@@ -189,19 +220,18 @@ Provides: golang(%{import_path}/pkg/pbutil) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/runtime) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/schedule) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/testutil) = %{version}-%{release}
+Provides: golang(%{import_path}/pkg/tlsutil) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/transport) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/types) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/wait) = %{version}-%{release}
-Provides: golang(%{import_path}/proxy) = %{version}-%{release}
+Provides: golang(%{import_path}/proxy/httpproxy) = %{version}-%{release}
+Provides: golang(%{import_path}/proxy/tcpproxy) = %{version}-%{release}
 Provides: golang(%{import_path}/raft) = %{version}-%{release}
 Provides: golang(%{import_path}/raft/raftpb) = %{version}-%{release}
 Provides: golang(%{import_path}/raft/rafttest) = %{version}-%{release}
 Provides: golang(%{import_path}/rafthttp) = %{version}-%{release}
 Provides: golang(%{import_path}/snap) = %{version}-%{release}
 Provides: golang(%{import_path}/snap/snappb) = %{version}-%{release}
-Provides: golang(%{import_path}/storage) = %{version}-%{release}
-Provides: golang(%{import_path}/storage/backend) = %{version}-%{release}
-Provides: golang(%{import_path}/storage/storagepb) = %{version}-%{release}
 Provides: golang(%{import_path}/store) = %{version}-%{release}
 Provides: golang(%{import_path}/tools/benchmark/cmd) = %{version}-%{release}
 Provides: golang(%{import_path}/tools/functional-tester/etcd-agent/client) = %{version}-%{release}
@@ -237,15 +267,11 @@ providing packages with %{import_path} prefix.
 
 %prep
 %setup -q -n %{name}-%{commit}
-%if ! 0%{?with_bundled}
-rm -rf Godeps/_workspace/src/github.com/{codegangsta,coreos,stretchr,jonboulle}
-rm -rf Godeps/_workspace/src/{code.google.com,bitbucket.org,golang.org}
+# move content of vendor under Godeps as has been so far
+mkdir -p Godeps/_workspace/src
+mv cmd/vendor/* Godeps/_workspace/src/.
 
-find . -name "*.go" \
-       -print |\
-       xargs sed -i 's/github.com\/coreos\/etcd\/Godeps\/_workspace\/src\///g'
-
-%endif
+%patch2 -p1
 
 %build
 mkdir -p src/github.com/coreos
@@ -254,24 +280,18 @@ ln -s ../../../ src/github.com/coreos/etcd
 %if ! 0%{?with_bundled}
 export GOPATH=$(pwd):%{gopath}
 %else
-export GOPATH=%{buildroot}/%{gopath}:$(pwd)/Godeps/_workspace:%{gopath}
+export GOPATH=$(pwd):$(pwd)/Godeps/_workspace:%{gopath}
 %endif
 
-%if ! 0%{?with_bundled}
 export LDFLAGS="-X %{import_path}/version.GitSHA %{shortcommit}"
-%gobuild -o bin/etcd %{import_path}
+%gobuild -o bin/etcd %{import_path}/cmd
 %gobuild -o bin/etcdctl %{import_path}/etcdctl
 %gobuild -o bin/etcd-top %{import_path}/tools/etcd-top
-%else
-./build
-%endif
 
 %install
 install -D -p -m 0755 bin/%{name} %{buildroot}%{_bindir}/%{name}
 install -D -p -m 0755 bin/%{name}ctl %{buildroot}%{_bindir}/%{name}ctl
-%if ! 0%{?with_bundled}
 install -D -p -m 0755 bin/%{name}-top %{buildroot}%{_bindir}/%{name}-top
-%endif
 install -D -p -m 0644 %{SOURCE1} %{buildroot}%{_unitdir}/%{name}.service
 install -d -m 0755 %{buildroot}%{_sysconfdir}/%{name}
 install -m 644 -t %{buildroot}%{_sysconfdir}/%{name} %{SOURCE2}
@@ -387,32 +407,34 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 
 %files
 %license LICENSE
-%doc README.md Documentation/internal-protocol-versioning.md
-%doc Godeps/Godeps.json
+%doc *.md
+%doc cmd/Godeps/Godeps.json
 %config(noreplace) %{_sysconfdir}/%{name}
 %{_bindir}/%{name}
 %{_bindir}/%{name}ctl
-%if ! 0%{?with_bundled}
 %{_bindir}/%{name}-top
-%endif
 %dir %attr(-,%{name},%{name}) %{_sharedstatedir}/%{name}
 %{_unitdir}/%{name}.service
 
 %if 0%{?with_devel}
 %files devel -f devel.file-list
 %license LICENSE
-%doc README.md Documentation/internal-protocol-versioning.md
-%doc Godeps/Godeps.json
+%doc *.md
+%doc cmd/Godeps/Godeps.json
 %dir %{gopath}/src/%{provider}.%{provider_tld}/%{project}
 %endif
 
 %if 0%{?with_unit_test}
 %files unit-test -f unit-test.file-list
 %license LICENSE
-%doc README.md Documentation/internal-protocol-versioning.md
+%doc *.md
 %endif
 
 %changelog
+* Sun May 15 2016 jchaloup <jchaloup@redhat.com> - 3.0.0-0.1.beta0
+- Update to v3.0.0-beta0 (build from bundled until new deps appear in dist-git)
+  resolves: #1333988
+
 * Sat Apr 30 2016 jchaloup <jchaloup@redhat.com> - 2.3.3-1
 - Update to v2.3.3
   resolves: #1331896
