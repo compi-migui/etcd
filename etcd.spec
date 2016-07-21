@@ -36,7 +36,7 @@
 
 Name:		%{repo}
 Version:	3.0.0
-Release:	0.1.beta0%{?dist}
+Release:	0.2.beta0%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{provider_prefix}
@@ -431,6 +431,9 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Thu Jul 21 2016 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 3.0.0-0.2.beta0
+- https://fedoraproject.org/wiki/Changes/golang1.7
+
 * Sun May 15 2016 jchaloup <jchaloup@redhat.com> - 3.0.0-0.1.beta0
 - Update to v3.0.0-beta0 (build from bundled until new deps appear in dist-git)
   resolves: #1333988
