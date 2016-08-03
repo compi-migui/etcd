@@ -31,11 +31,11 @@
 # https://github.com/coreos/etcd
 %global provider_prefix %{provider}.%{provider_tld}/%{project}/%{repo}
 %global import_path     %{provider_prefix}
-%global commit          faeeb2fc7514c5caf7a9a0cc03ac9ee2ff94438b
+%global commit          d53923c636e0e4ab7f00cb75681b97a8f11f5a9d
 %global shortcommit     %(c=%{commit}; echo ${c:0:7})
 
 Name:		%{repo}
-Version:	3.0.2
+Version:	3.0.4
 Release:	1%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
@@ -63,13 +63,13 @@ BuildRequires: golang(github.com/coreos/go-systemd/daemon)
 BuildRequires: golang(github.com/coreos/go-systemd/util)
 BuildRequires: golang(github.com/coreos/pkg/capnslog)
 BuildRequires: golang(github.com/dustin/go-humanize)
-BuildRequires: golang(github.com/gengo/grpc-gateway/runtime)
-BuildRequires: golang(github.com/gengo/grpc-gateway/utilities)
 BuildRequires: golang(github.com/ghodss/yaml)
 BuildRequires: golang(github.com/gogo/protobuf/proto)
 BuildRequires: golang(github.com/golang/groupcache/lru)
 BuildRequires: golang(github.com/golang/protobuf/proto)
 BuildRequires: golang(github.com/google/btree)
+BuildRequires: golang(github.com/grpc-ecosystem/grpc-gateway/runtime)
+BuildRequires: golang(github.com/grpc-ecosystem/grpc-gateway/utilities)
 BuildRequires: golang(github.com/jonboulle/clockwork)
 BuildRequires: golang(github.com/kr/pty)
 BuildRequires: golang(github.com/olekukonko/tablewriter)
@@ -108,7 +108,6 @@ Summary:        etcd golang devel libraries
 BuildArch:      noarch
 
 %if 0%{?with_check}
-BuildRequires: golang(github.com/cheggaaa/pb)
 BuildRequires: golang(github.com/bgentry/speakeasy)
 BuildRequires: golang(github.com/boltdb/bolt)
 BuildRequires: golang(github.com/cheggaaa/pb)
@@ -118,13 +117,13 @@ BuildRequires: golang(github.com/coreos/go-systemd/daemon)
 BuildRequires: golang(github.com/coreos/go-systemd/util)
 BuildRequires: golang(github.com/coreos/pkg/capnslog)
 BuildRequires: golang(github.com/dustin/go-humanize)
-BuildRequires: golang(github.com/gengo/grpc-gateway/runtime)
-BuildRequires: golang(github.com/gengo/grpc-gateway/utilities)
 BuildRequires: golang(github.com/ghodss/yaml)
 BuildRequires: golang(github.com/gogo/protobuf/proto)
 BuildRequires: golang(github.com/golang/groupcache/lru)
 BuildRequires: golang(github.com/golang/protobuf/proto)
 BuildRequires: golang(github.com/google/btree)
+BuildRequires: golang(github.com/grpc-ecosystem/grpc-gateway/runtime)
+BuildRequires: golang(github.com/grpc-ecosystem/grpc-gateway/utilities)
 BuildRequires: golang(github.com/jonboulle/clockwork)
 BuildRequires: golang(github.com/kr/pty)
 BuildRequires: golang(github.com/olekukonko/tablewriter)
@@ -145,11 +144,10 @@ BuildRequires: golang(google.golang.org/grpc/grpclog)
 BuildRequires: golang(google.golang.org/grpc/metadata)
 %endif
 
-Requires: golang(github.com/cheggaaa/pb)
 Requires: golang(github.com/bgentry/speakeasy)
 Requires: golang(github.com/boltdb/bolt)
+Requires: golang(github.com/cheggaaa/pb)
 Requires: golang(github.com/cockroachdb/cmux)
-Requires: golang(github.com/codegangsta/cli)
 Requires: golang(github.com/coreos/go-semver/semver)
 Requires: golang(github.com/coreos/go-systemd/daemon)
 Requires: golang(github.com/coreos/go-systemd/util)
@@ -157,7 +155,11 @@ Requires: golang(github.com/coreos/pkg/capnslog)
 Requires: golang(github.com/dustin/go-humanize)
 Requires: golang(github.com/ghodss/yaml)
 Requires: golang(github.com/gogo/protobuf/proto)
+Requires: golang(github.com/golang/groupcache/lru)
+Requires: golang(github.com/golang/protobuf/proto)
 Requires: golang(github.com/google/btree)
+Requires: golang(github.com/grpc-ecosystem/grpc-gateway/runtime)
+Requires: golang(github.com/grpc-ecosystem/grpc-gateway/utilities)
 Requires: golang(github.com/jonboulle/clockwork)
 Requires: golang(github.com/kr/pty)
 Requires: golang(github.com/olekukonko/tablewriter)
@@ -166,6 +168,7 @@ Requires: golang(github.com/prometheus/procfs)
 Requires: golang(github.com/spf13/cobra)
 Requires: golang(github.com/spf13/pflag)
 Requires: golang(github.com/ugorji/go/codec)
+Requires: golang(github.com/urfave/cli)
 Requires: golang(github.com/xiang90/probing)
 Requires: golang(golang.org/x/crypto/bcrypt)
 Requires: golang(golang.org/x/net/context)
@@ -174,6 +177,7 @@ Requires: golang(google.golang.org/grpc)
 Requires: golang(google.golang.org/grpc/codes)
 Requires: golang(google.golang.org/grpc/credentials)
 Requires: golang(google.golang.org/grpc/grpclog)
+Requires: golang(google.golang.org/grpc/metadata)
 
 Provides: golang(%{import_path}/alarm) = %{version}-%{release}
 Provides: golang(%{import_path}/auth) = %{version}-%{release}
@@ -444,6 +448,10 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Tue Aug 02 2016 jchaloup <jchaloup@redhat.com> - 3.0.4-1
+- Update to 3.0.4
+  related: #1351818
+
 * Thu Jul 28 2016 jchaloup <jchaloup@redhat.com> - 3.0.2-1
 - Update to 3.0.2
   resolves: #1351818
