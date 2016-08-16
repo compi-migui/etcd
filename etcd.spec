@@ -36,15 +36,13 @@
 
 Name:		%{repo}
 Version:	3.0.4
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{provider_prefix}
 Source0:	https://%{provider_prefix}/archive/%{commit}/%{repo}-%{shortcommit}.tar.gz
 Source1:	%{name}.service
 Source2:	%{name}.conf
-Patch0:         make-etcd-bin-path-configurable.patch
-Patch1:         e2e-sleep-for-a-while-to-let-etcd-procs-start.patch
 Patch2:         0001-change-import-paths.patch
 
 # e.g. el6 has ppc64 arch without gcc-go, so EA tag is required
@@ -339,6 +337,14 @@ for file in $(find . -iname "*_test.go"); do
     cp -pav $file %{buildroot}/%{gopath}/src/%{import_path}/$file
     echo "%%{gopath}/src/%%{import_path}/$file" >> unit-test.file-list
 done
+
+install -dp %{buildroot}/%{gopath}/src/%{import_path}/integration/
+cp -rpav integration/fixtures %{buildroot}/%{gopath}/src/%{import_path}/integration/.
+echo "%%{gopath}/src/%%{import_path}/integration/fixtures" >> unit-test.file-list
+
+install -dp %{buildroot}/%{gopath}/src/%{import_path}/etcdserver/api/v2http/testdata
+cp -rpav etcdserver/api/v2http/testdata %{buildroot}/%{gopath}/src/%{import_path}/etcdserver/api/v2http/.
+echo "%%{gopath}/src/%%{import_path}/etcdserver/api/v2http/testdata" >> unit-test.file-list
 %endif
 
 %if 0%{?with_devel}
@@ -357,52 +363,25 @@ export GOPATH=%{buildroot}/%{gopath}:$(pwd)/Godeps/_workspace:%{gopath}
 %global gotest go test
 %endif
 
-export BIN_PATH="$(pwd)/bin"
+%ifarch x86_64
+RACE="--race"
+%else
+RACE=""
+%endif
 
-%gotest %{import_path}/client
-%gotest %{import_path}/clientv3
-%gotest %{import_path}/clientv3/integration
-%gotest %{import_path}/compactor
-%gotest %{import_path}/contrib/raftexample
-%gotest %{import_path}/discovery
-#%%gotest %%{import_path}/e2e
-%gotest %{import_path}/error
-%gotest %{import_path}/etcdctl/command
-%gotest %{import_path}/etcdmain
-%gotest %{import_path}/etcdserver
-%gotest %{import_path}/etcdserver/auth
-#%gotest %{import_path}/etcdserver/etcdhttp
-#%gotest %{import_path}/etcdserver/etcdhttp/httptypes
-#%%gotest %%{import_path}/integration
-%gotest %{import_path}/lease
-%gotest %{import_path}/pkg/adt
-%gotest %{import_path}/pkg/cors
-%gotest %{import_path}/pkg/crc
-%gotest %{import_path}/pkg/fileutil
-%gotest %{import_path}/pkg/flags
-%gotest %{import_path}/pkg/idutil
-%gotest %{import_path}/pkg/ioutil
-%gotest %{import_path}/pkg/logutil
-%gotest %{import_path}/pkg/netutil
-%gotest %{import_path}/pkg/osutil
-%gotest %{import_path}/pkg/pathutil
-%gotest %{import_path}/pkg/pbutil
-%gotest %{import_path}/pkg/schedule
-%gotest %{import_path}/pkg/testutil
-%gotest %{import_path}/pkg/transport
-%gotest %{import_path}/pkg/types
-%gotest %{import_path}/pkg/wait
-%gotest %{import_path}/proxy
-%gotest %{import_path}/raft
-%gotest %{import_path}/raft/rafttest
-%gotest %{import_path}/rafthttp
-%gotest %{import_path}/snap
-%gotest %{import_path}/storage
-%gotest %{import_path}/storage/backend
-%gotest %{import_path}/store
-%gotest %{import_path}/tools/functional-tester/etcd-agent
-%gotest %{import_path}/version
-%gotest %{import_path}/wal
+# unit-tests
+# TODO(jchaloup): read all the envs from test file
+export IGNORE_PKGS="(cmd|vendor|etcdserverpb|rafttest)"
+export INTEGRATION_PKGS="(integration|e2e|contrib|functional-tester)"
+export TEST_PKGS=`find . -name \*_test.go | while read a; do dirname $a; done | sort | uniq | egrep -v "$IGNORE_PKGS" | sed "s|\./||g"`
+export TESTS=`echo "$TEST_PKGS" | egrep -v "$INTEGRATION_PKGS"`
+
+for test in ${TESTS}; do
+%gotest -timeout 3m -cover ${RACE} -cpu 1,2,4 -run=Test github.com/coreos/etcd/${test}
+done
+
+./test
+
 %endif
 
 %pre
@@ -448,6 +427,11 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Tue Aug 16 2016 jchaloup <jchaloup@redhat.com> - 3.0.4-2
+- Hack test to provide ability to run unit-tests and integration tests
+  Still, keeping it disabled by default as it keeps failing
+  related: #1351818
+
 * Tue Aug 02 2016 jchaloup <jchaloup@redhat.com> - 3.0.4-1
 - Update to 3.0.4
   related: #1351818
