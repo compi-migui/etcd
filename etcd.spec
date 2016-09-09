@@ -31,12 +31,12 @@
 # https://github.com/coreos/etcd
 %global provider_prefix %{provider}.%{provider_tld}/%{project}/%{repo}
 %global import_path     %{provider_prefix}
-%global commit          d53923c636e0e4ab7f00cb75681b97a8f11f5a9d
+%global commit          5695120efcfdc05b8ba51be2018d99c2937b41d0
 %global shortcommit     %(c=%{commit}; echo ${c:0:7})
 
 Name:		%{repo}
-Version:	3.0.4
-Release:	2%{?dist}
+Version:	3.0.7
+Release:	1%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{provider_prefix}
@@ -427,6 +427,10 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Fri Sep 09 2016 jchaloup <jchaloup@redhat.com> - 3.0.7-1
+- Update to v3.0.7
+  resolves: #1370678
+
 * Tue Aug 16 2016 jchaloup <jchaloup@redhat.com> - 3.0.4-2
 - Hack test to provide ability to run unit-tests and integration tests
   Still, keeping it disabled by default as it keeps failing
