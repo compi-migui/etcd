@@ -36,7 +36,7 @@
 
 Name:		%{repo}
 Version:	3.0.12
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{provider_prefix}
@@ -46,7 +46,7 @@ Source2:	%{name}.conf
 Patch2:         0001-change-import-paths.patch
 
 # e.g. el6 has ppc64 arch without gcc-go, so EA tag is required
-ExclusiveArch:  %{ix86} x86_64 %{arm} aarch64 ppc64le
+ExclusiveArch:  %{ix86} x86_64 %{arm} aarch64 ppc64le s390x
 # If go_compiler is not set to 1, there is no virtual provide. Use golang instead.
 BuildRequires:  %{?go_compiler:compiler(go-compiler)}%{!?go_compiler:golang}
 
@@ -427,6 +427,9 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Mon Oct 24 2016 jchaloup <jchaloup@redhat.com> - 3.0.12-2
+- Extend supported architectures with s390x
+
 * Thu Oct 13 2016 jchaloup <jchaloup@redhat.com> - 3.0.12-1
 - Update to v3.0.12
   related: #1382965
