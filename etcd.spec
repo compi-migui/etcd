@@ -31,12 +31,12 @@
 # https://github.com/coreos/etcd
 %global provider_prefix %{provider}.%{provider_tld}/%{project}/%{repo}
 %global import_path     %{provider_prefix}
-%global commit          2d1e2e8e646e65f73ca0d9ee905a5343d6135a50
+%global commit          c99d0d4b255f0dfc117b59555c89933192237c27
 %global shortcommit     %(c=%{commit}; echo ${c:0:7})
 
 Name:		%{repo}
-Version:	3.0.12
-Release:	2%{?dist}
+Version:	3.0.13
+Release:	1%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{provider_prefix}
@@ -427,6 +427,10 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Thu Oct 27 2016 jchaloup <jchaloup@redhat.com> - 3.0.13-1
+- Update to v3.0.13
+  related: #1382965
+
 * Mon Oct 24 2016 jchaloup <jchaloup@redhat.com> - 3.0.12-2
 - Extend supported architectures with s390x
 
