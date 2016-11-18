@@ -36,7 +36,7 @@
 
 Name:		%{repo}
 Version:	3.0.15
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{provider_prefix}
@@ -44,6 +44,7 @@ Source0:	https://%{provider_prefix}/archive/%{commit}/%{repo}-%{shortcommit}.tar
 Source1:	%{name}.service
 Source2:	%{name}.conf
 Patch2:         0001-change-import-paths.patch
+Patch3:         run-etcd-on-ppc64le-by-default.patch
 
 # e.g. el6 has ppc64 arch without gcc-go, so EA tag is required
 ExclusiveArch:  %{ix86} x86_64 %{arm} aarch64 ppc64le s390x
@@ -287,6 +288,7 @@ mkdir -p Godeps/_workspace/src
 mv cmd/vendor/* Godeps/_workspace/src/.
 
 %patch2 -p1
+%patch3 -p1
 
 %build
 mkdir -p src/github.com/coreos
@@ -427,6 +429,10 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Fri Nov 18 2016 jchaloup <jchaloup@redhat.com> - 3.0.15-2
+- Remove ppc64le architecture restriction
+  resolves: #1396463
+
 * Tue Nov 15 2016 jchaloup <jchaloup@redhat.com> - 3.0.15-1
 - Update to v3.0.15
   related: #1382965
