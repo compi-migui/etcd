@@ -31,12 +31,12 @@
 # https://github.com/coreos/etcd
 %global provider_prefix %{provider}.%{provider_tld}/%{project}/%{repo}
 %global import_path     %{provider_prefix}
-%global commit          fc00305a2e59b4c2d4a53c9fbb4d30741a96ea67
+%global commit          cc198e22d3b8fd7ec98304c95e68ee375be54589
 %global shortcommit     %(c=%{commit}; echo ${c:0:7})
 
 Name:		%{repo}
-Version:	3.0.15
-Release:	2%{?dist}
+Version:	3.0.17
+Release:	1%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{provider_prefix}
@@ -303,12 +303,10 @@ export GOPATH=$(pwd):$(pwd)/Godeps/_workspace:%{gopath}
 export LDFLAGS="-X %{import_path}/version.GitSHA=%{shortcommit}"
 %gobuild -o bin/etcd %{import_path}/cmd
 %gobuild -o bin/etcdctl %{import_path}/etcdctl
-%gobuild -o bin/etcd-top %{import_path}/tools/etcd-top
 
 %install
 install -D -p -m 0755 bin/%{name} %{buildroot}%{_bindir}/%{name}
 install -D -p -m 0755 bin/%{name}ctl %{buildroot}%{_bindir}/%{name}ctl
-install -D -p -m 0755 bin/%{name}-top %{buildroot}%{_bindir}/%{name}-top
 install -D -p -m 0644 %{SOURCE1} %{buildroot}%{_unitdir}/%{name}.service
 install -d -m 0755 %{buildroot}%{_sysconfdir}/%{name}
 install -m 644 -t %{buildroot}%{_sysconfdir}/%{name} %{SOURCE2}
@@ -410,7 +408,6 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %config(noreplace) %{_sysconfdir}/%{name}
 %{_bindir}/%{name}
 %{_bindir}/%{name}ctl
-%{_bindir}/%{name}-top
 %dir %attr(-,%{name},%{name}) %{_sharedstatedir}/%{name}
 %{_unitdir}/%{name}.service
 
@@ -429,6 +426,11 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Mon Jan 23 2017 Jan Chaloupka <jchaloup@redhat.com> - 3.0.17-1
+- Update to v3.0.17
+  etcd-top removed by upstream
+  resolves: #1415622
+
 * Fri Nov 18 2016 jchaloup <jchaloup@redhat.com> - 3.0.15-2
 - Remove ppc64le architecture restriction
   resolves: #1396463
