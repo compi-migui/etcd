@@ -31,11 +31,11 @@
 # https://github.com/coreos/etcd
 %global provider_prefix %{provider}.%{provider_tld}/%{project}/%{repo}
 %global import_path     %{provider_prefix}
-%global commit          41e52ebc22add2f9b91a59f90db8e31f7e5c0538
+%global commit          20490caaf0dcd96bb4a95e40625559def8ef5b04
 %global shortcommit     %(c=%{commit}; echo ${c:0:7})
 
 Name:		%{repo}
-Version:	3.1.4
+Version:	3.1.5
 Release:	1%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
@@ -429,6 +429,10 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Tue Mar 28 2017 Jan Chaloupka <jchaloup@redhat.com> - 3.1.5-1
+- Update to 3.1.5
+  resolves: #1436452
+
 * Mon Mar 27 2017 Jan Chaloupka <jchaloup@redhat.com> - 3.1.4-1
 - Update to 3.1.4
   resolves: #1435028
