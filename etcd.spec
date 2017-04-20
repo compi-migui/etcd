@@ -31,11 +31,11 @@
 # https://github.com/coreos/etcd
 %global provider_prefix %{provider}.%{provider_tld}/%{project}/%{repo}
 %global import_path     %{provider_prefix}
-%global commit          20490caaf0dcd96bb4a95e40625559def8ef5b04
+%global commit          e5b7ee2d03627ca33201da428b8110ef7c3e95f1
 %global shortcommit     %(c=%{commit}; echo ${c:0:7})
 
 Name:		%{repo}
-Version:	3.1.5
+Version:	3.1.6
 Release:	1%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
@@ -186,14 +186,17 @@ Provides: golang(%{import_path}/alarm) = %{version}-%{release}
 Provides: golang(%{import_path}/auth) = %{version}-%{release}
 Provides: golang(%{import_path}/auth/authpb) = %{version}-%{release}
 Provides: golang(%{import_path}/client) = %{version}-%{release}
+Provides: golang(%{import_path}/client/integration) = %{version}-%{release}
 Provides: golang(%{import_path}/clientv3) = %{version}-%{release}
 Provides: golang(%{import_path}/clientv3/concurrency) = %{version}-%{release}
 Provides: golang(%{import_path}/clientv3/integration) = %{version}-%{release}
 Provides: golang(%{import_path}/clientv3/mirror) = %{version}-%{release}
+Provides: golang(%{import_path}/clientv3/naming) = %{version}-%{release}
 Provides: golang(%{import_path}/compactor) = %{version}-%{release}
 Provides: golang(%{import_path}/contrib/recipes) = %{version}-%{release}
 Provides: golang(%{import_path}/discovery) = %{version}-%{release}
 Provides: golang(%{import_path}/e2e) = %{version}-%{release}
+Provides: golang(%{import_path}/embed) = %{version}-%{release}
 Provides: golang(%{import_path}/error) = %{version}-%{release}
 Provides: golang(%{import_path}/etcdctl/ctlv2) = %{version}-%{release}
 Provides: golang(%{import_path}/etcdctl/ctlv2/command) = %{version}-%{release}
@@ -220,6 +223,7 @@ Provides: golang(%{import_path}/mvcc/mvccpb) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/adt) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/contention) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/cors) = %{version}-%{release}
+Provides: golang(%{import_path}/pkg/cpuutil) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/crc) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/expect) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/fileutil) = %{version}-%{release}
@@ -231,12 +235,15 @@ Provides: golang(%{import_path}/pkg/logutil) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/mock/mockstorage) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/mock/mockstore) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/mock/mockwait) = %{version}-%{release}
+Provides: golang(%{import_path}/pkg/monotime) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/netutil) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/osutil) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/pathutil) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/pbutil) = %{version}-%{release}
+Provides: golang(%{import_path}/pkg/report) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/runtime) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/schedule) = %{version}-%{release}
+Provides: golang(%{import_path}/pkg/stringutil) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/testutil) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/tlsutil) = %{version}-%{release}
 Provides: golang(%{import_path}/pkg/transport) = %{version}-%{release}
@@ -255,6 +262,7 @@ Provides: golang(%{import_path}/snap/snappb) = %{version}-%{release}
 Provides: golang(%{import_path}/store) = %{version}-%{release}
 Provides: golang(%{import_path}/tools/benchmark/cmd) = %{version}-%{release}
 Provides: golang(%{import_path}/tools/functional-tester/etcd-agent/client) = %{version}-%{release}
+Provides: golang(%{import_path}/tools/functional-tester/etcd-runner/command) = %{version}-%{release}
 Provides: golang(%{import_path}/version) = %{version}-%{release}
 Provides: golang(%{import_path}/wal) = %{version}-%{release}
 Provides: golang(%{import_path}/wal/walpb) = %{version}-%{release}
@@ -429,6 +437,10 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Thu Apr 20 2017 Jan Chaloupka <jchaloup@redhat.com> - 3.1.6-1
+- Update to 3.1.6
+  resolves: #1444068
+
 * Tue Mar 28 2017 Jan Chaloupka <jchaloup@redhat.com> - 3.1.5-1
 - Update to 3.1.5
   resolves: #1436452
