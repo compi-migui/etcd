@@ -31,20 +31,18 @@
 # https://github.com/coreos/etcd
 %global provider_prefix %{provider}.%{provider_tld}/%{project}/%{repo}
 %global import_path     %{provider_prefix}
-%global commit          0f4a535c2fb7a2920e13e2e19b9eaf6b2e9285e5
+%global commit          d0d1a87aa96ae14914751d42264262cb69eda170
 %global shortcommit     %(c=%{commit}; echo ${c:0:7})
 
 Name:		%{repo}
-Version:	3.1.9
-Release:	3%{?dist}
+Version:	3.2.5
+Release:	1%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{provider_prefix}
 Source0:	https://%{provider_prefix}/archive/%{commit}/%{repo}-%{shortcommit}.tar.gz
 Source1:	%{name}.service
 Source2:	%{name}.conf
-Patch2:         change-import-path.patch
-Patch3:         run-etcd-on-ppc64le-by-default.patch
 
 # e.g. el6 has ppc64 arch without gcc-go, so EA tag is required
 ExclusiveArch:  %{ix86} x86_64 %{arm} aarch64 ppc64le s390x
@@ -60,16 +58,17 @@ BuildRequires: golang(github.com/coreos/go-semver/semver)
 BuildRequires: golang(github.com/coreos/go-systemd/daemon)
 BuildRequires: golang(github.com/coreos/go-systemd/util)
 BuildRequires: golang(github.com/coreos/pkg/capnslog)
+BuildRequires: golang(github.com/dgrijalva/jwt-go)
 BuildRequires: golang(github.com/dustin/go-humanize)
 BuildRequires: golang(github.com/ghodss/yaml)
 BuildRequires: golang(github.com/gogo/protobuf/proto)
+BuildRequires: golang(github.com/golang/groupcache/lru)
 BuildRequires: golang(github.com/golang/protobuf/proto)
 BuildRequires: golang(github.com/google/btree)
 BuildRequires: golang(github.com/grpc-ecosystem/go-grpc-prometheus)
 BuildRequires: golang(github.com/grpc-ecosystem/grpc-gateway/runtime)
 BuildRequires: golang(github.com/grpc-ecosystem/grpc-gateway/utilities)
 BuildRequires: golang(github.com/jonboulle/clockwork)
-BuildRequires: golang(github.com/karlseguin/ccache)
 BuildRequires: golang(github.com/kr/pty)
 BuildRequires: golang(github.com/olekukonko/tablewriter)
 BuildRequires: golang(github.com/prometheus/client_golang/prometheus)
@@ -81,6 +80,7 @@ BuildRequires: golang(github.com/xiang90/probing)
 BuildRequires: golang(golang.org/x/crypto/bcrypt)
 BuildRequires: golang(golang.org/x/net/context)
 BuildRequires: golang(golang.org/x/net/http2)
+BuildRequires: golang(golang.org/x/net/trace)
 BuildRequires: golang(golang.org/x/time/rate)
 BuildRequires: golang(google.golang.org/grpc)
 BuildRequires: golang(google.golang.org/grpc/codes)
@@ -88,6 +88,7 @@ BuildRequires: golang(google.golang.org/grpc/credentials)
 BuildRequires: golang(google.golang.org/grpc/grpclog)
 BuildRequires: golang(google.golang.org/grpc/metadata)
 BuildRequires: golang(google.golang.org/grpc/naming)
+BuildRequires: golang(google.golang.org/grpc/peer)
 BuildRequires: golang(google.golang.org/grpc/transport)
 %endif
 
@@ -299,8 +300,7 @@ providing packages with %{import_path} prefix.
 mkdir -p Godeps/_workspace/src
 mv cmd/vendor/* Godeps/_workspace/src/.
 
-%patch2 -p1
-%patch3 -p1
+sed -i 's/"gopkg\.in\/cheggaaa\/pb\.v1/"github\.com\/cheggaaa\/pb/g' $(find . -name '*.go')
 
 %build
 mkdir -p src/github.com/coreos
@@ -437,6 +437,10 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Tue Aug 15 2017 Jan Chaloupka <jchaloup@redhat.com> - 3.2.5-1
+- Update to 3.2.5
+  resolves: #1448611
+
 * Wed Aug 02 2017 Fedora Release Engineering <releng@fedoraproject.org> - 3.1.9-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_27_Binutils_Mass_Rebuild
 
