@@ -1,0 +1,21 @@
+---
+
+- name: Get distro name from /etc/os-release
+  raw: "grep '^NAME=' /etc/os-release | sed s'/NAME=//'"
+  register: distro
+- name: Set the is_fedora fact
+  set_fact:
+    is_fedora: true
+  when: "'Fedora' in distro.stdout"
+- name: Set the is_rhel fact
+  set_fact:
+    is_rhel: true
+  when: "'Red Hat Enterprise Linux' in distro.stdout"
+- name: Update request packages for Fedora
+  set_fact:
+    req_packages: "{{ req_packages }} + {{ fedora_req_packages }}"
+  when: is_fedora and fedora_req_packages is defined
+- name: Update request packages for RHEL
+  set_fact:
+    req_packages: "{{ req_packages }} + {{ rhel_req_packages }}"
+  when: is_rhel and rhel_req_packages is defined

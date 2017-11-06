@@ -1,0 +1,65 @@
+---
+
+- name: Create bin
+  file:
+    path: "{{ bin_dir }}"
+    state: directory
+
+- name: Create src code directory
+  file:
+    path: "{{ repo_path }}/{{ repo_name }}"
+    state: directory
+
+- name: Clone repo to /var/tmp
+  shell: git clone "{{ git_repo }}"
+  args:
+    chdir: "{{ repo_path }}"
+- name: Determine if use make 
+  shell: ls "{{ repo_path }}/{{ repo_name }}" | grep -i makefile
+  ignore_errors: true
+  register: output
+
+- name: Set compile with make
+  set_fact:
+    compile_method: make
+  when: output.rc == 0
+
+- name: Determine if use build
+  shell: ls "{{ repo_path }}/{{ repo_name }}" | grep -i build
+  ignore_errors: true
+  register: output
+- name: Set compile with build
+  set_fact:
+    compile_method: build
+  when: output.rc == 0
+
+- name: Build with make
+  shell: make
+  args:
+    chdir: "{{ repo_path }}/{{ repo_name }}"
+  when: "compile_method == 'make'"
+- name: Build with ./build
+  shell: ./build
+  args:
+    chdir: "{{ repo_path }}/{{ repo_name }}"
+  when: "compile_method == 'build'"
+- name: Determine if bin dir is generated
+  shell: ls "{{ repo_path }}/{{ repo_name }}"/bin
+  ignore_errors: true
+  register: output
+- name: Set compiled binary dir
+  set_fact:
+    c_bin_dir: "{{ repo_path }}/{{ repo_name }}/bin"
+  when: output.rc == 0
+- name: Set compiled binary dir
+  set_fact:
+    c_bin_dir: "{{ repo_path }}/{{ repo_name }}"
+  when: output.rc != 0
+- name: Copy generated binary to customer bin dir
+  shell: cp {{ c_bin_dir }}/{{ item }} {{ bin_dir }}
+  with_items:
+    "{{ compiled_binary }}"
+- name: Clean up source directory
+  file:
+    path: "{{ repo_path }}/{{ repo_name }}"
+    state: absent

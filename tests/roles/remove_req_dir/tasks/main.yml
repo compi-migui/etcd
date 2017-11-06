@@ -1,0 +1,23 @@
+---
+
+- name: Get files or directories fit for the patterns
+  find:
+    paths: "{{ path }}"
+    patterns: "{{ patterns }}"
+    file_type: "{{ file_type| default('file')}}"
+  register: remove_paths
+  when: (patterns is defined) and (patterns != "")
+- name: Remove the files or directories
+  file:
+    path: "{{ item_path.path }}"
+    state: absent
+  with_items:
+    - "{{ remove_paths.files }}"
+  loop_control:
+    loop_var: item_path
+  when: (patterns is defined) and (patterns != "")
+- name: Remove target files or diredctories
+  file:
+    path: "{{ path }}"
+    state: absent
+  when: (patterns is undefined) or (patterns == "")

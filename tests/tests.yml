@@ -1,0 +1,3 @@
+---
+# Tests for classic environment
+- include: e2e_test_from_src_include.yml

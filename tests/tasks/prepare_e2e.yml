@@ -1,0 +1,59 @@
+---
+
+- name: Check Ca files
+  shell: openssl verify -CAfile ca.crt server.crt
+  args:
+    chdir: "{{ src_dir}}/integration/fixtures"
+  ignore_errors: true
+  register: ca_ok
+- name: Replace ca files
+  environment:
+    GOPATH: "{{ go_path }}"
+    PATH: "{{ ansible_env.PATH }}:{{ go_path }}/bin"
+  include_role:
+    name: create_ca_files_with_cfssl
+  vars:
+    cert_names: server
+    cert_srcs_dsts: [{ src: "ca.pem", dst: "ca.crt" }, { src: "server.pem", dst: "server.crt" }, { src: "server-key.pem", dst: "server.key.insecure" }]
+  when: ca_ok.rc != 0
+- name: Check if Godeps exist under src
+  find:
+    paths: "{{ src_dir }}"
+    patterns: Godeps
+    file_type: directory
+  register: godeps
+- name: Install glide
+  include_role:
+    name: install_go_repo_from_github
+  vars:
+    bin_dir: "{{ go_path }}/bin"
+    git_repo: https://github.com/Masterminds/glide.git
+    repo_path: "{{go_path}}/src/github.com/Masterminds"
+    repo_name: glide
+    compiled_binary: ['glide']
+  environment:
+    GOPATH: "{{ go_path }}"
+  when: godeps.matched == 0
+- name: Set up golang path
+  environment:
+    GOPATH: "{{ go_path }}"
+    PATH: "{{ ansible_env.PATH }}:{{ go_path }}/bin"
+    https_proxy: squid.redhat.com:3128
+  block:
+    - shell: mkdir gopath; ln -s {{ src_dir }}/Godeps/_workspace/src gopath/src; rm gopath/src/github.com/coreos/etcd; ln -s {{ src_dir }} gopath/src/github.com/coreos/etcd
+      args:
+        chdir: "{{ src_dir }}"
+      when: godeps.matched != 0
+    - shell: mkdir gopath; cp -r  vendor/* cmd/vendor/; ln -s {{ src_dir }}/cmd/vendor {{ src_dir }}/gopath/src; ln -s  {{ src_dir }} gopath/src/github.com/coreos/etcd
+      args:
+        chdir: "{{ src_dir }}"
+      when: godeps.matched == 0
+- name: Create bin under etcd src
+  file:
+    path: "{{ src_dir }}/bin"
+    state: directory
+- name: Copy exec file to src directory
+  shell: cp -f `which {{ item }}` {{ src_dir }}/bin/{{ item }}
+  with_items:
+    - etcd
+    - etcdctl

@@ -1,0 +1,8 @@
+artifacts: ./artifacts
+rpm_base_url: https://kojipkgs.fedoraproject.org/packages
+go_path: /root/golang
+debug: false
+req_packages: ['git', 'golang', 'rpm-build', 'yum', 'libselinux-python']
+fedora_req_packages: ['go-compilers-golang-compiler']
+is_fedora: false
+is_rhel: false
