@@ -33,16 +33,18 @@
 %global import_path     %{provider_prefix}
 %global commit          bb66589f8cf18960c7f3d56b1b83753caeed9c7a
 %global shortcommit     %(c=%{commit}; echo ${c:0:7})
+%global man_version     3.2.7
 
 Name:		%{repo}
 Version:	3.2.7
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{provider_prefix}
 Source0:	https://%{provider_prefix}/archive/%{commit}/%{repo}-%{shortcommit}.tar.gz
 Source1:	%{name}.service
 Source2:	%{name}.conf
+Source3:        man-%{man_version}.tar.gz
 
 # e.g. el6 has ppc64 arch without gcc-go, so EA tag is required
 ExclusiveArch:  %{ix86} x86_64 %{arm} aarch64 ppc64le s390x
@@ -295,7 +297,11 @@ providing packages with %{import_path} prefix.
 %endif
 
 %prep
+%setup -q -n man-%{man_version} -T -b 3
 %setup -q -n %{name}-%{commit}
+mkdir -p man/man1
+cp ../man-%{man_version}/*.1 man/man1/.
+
 # move content of vendor under Godeps as has been so far
 mkdir -p Godeps/_workspace/src
 mv cmd/vendor/* Godeps/_workspace/src/.
@@ -322,6 +328,11 @@ install -D -p -m 0755 bin/%{name}ctl %{buildroot}%{_bindir}/%{name}ctl
 install -D -p -m 0644 %{SOURCE1} %{buildroot}%{_unitdir}/%{name}.service
 install -d -m 0755 %{buildroot}%{_sysconfdir}/%{name}
 install -m 644 -t %{buildroot}%{_sysconfdir}/%{name} %{SOURCE2}
+
+# install manpages
+install -d %{buildroot}%{_mandir}/man1
+install -p -m 644 man/man1/* %{buildroot}%{_mandir}/man1
+
 
 # And create /var/lib/etcd
 install -d -m 0755 %{buildroot}%{_sharedstatedir}/%{name}
@@ -421,6 +432,7 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %{_bindir}/%{name}ctl
 %dir %attr(-,%{name},%{name}) %{_sharedstatedir}/%{name}
 %{_unitdir}/%{name}.service
+%{_mandir}/man1/*.1*
 
 %if 0%{?with_devel}
 %files devel -f devel.file-list
@@ -437,6 +449,9 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Tue Nov 07 2017 Jan Chaloupka <jchaloup@redhat.com> - 3.2.7-2
+- Generate man pages
+
 * Sun Sep 24 2017 Jan Chaloupka <jchaloup@redhat.com> - 3.2.7-1
 - Update to 3.2.7
   related: #1448611

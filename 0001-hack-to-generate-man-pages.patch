@@ -1,0 +1,137 @@
+From 481e731c01426bd7488011352515db03a46aa280 Mon Sep 17 00:00:00 2001
+From: Jan Chaloupka <jchaloup@redhat.com>
+Date: Mon, 6 Nov 2017 23:05:19 +0100
+Subject: [PATCH] hack-to-generate-man-pages
+
+---
+ .../_workspace/src/github.com/urfave/cli/flag.go   |  4 +-
+ etcdctl/ctlv2/ctl.go                               | 62 ++++++++++++++++++++++
+ etcdctl/ctlv3/ctl_nocov.go                         | 13 +++--
+ 3 files changed, 74 insertions(+), 5 deletions(-)
+
+diff --git a/Godeps/_workspace/src/github.com/urfave/cli/flag.go b/Godeps/_workspace/src/github.com/urfave/cli/flag.go
+index f8a28d1..9787fe1 100644
+--- a/Godeps/_workspace/src/github.com/urfave/cli/flag.go
++++ b/Godeps/_workspace/src/github.com/urfave/cli/flag.go
+@@ -752,7 +752,7 @@ func prefixedNames(fullName, placeholder string) string {
+ 	parts := strings.Split(fullName, ",")
+ 	for i, name := range parts {
+ 		name = strings.Trim(name, " ")
+-		prefixed += prefixFor(name) + name
++		prefixed += "\\fB" + prefixFor(name) + name + "\\fP"
+ 		if placeholder != "" {
+ 			prefixed += " " + placeholder
+ 		}
+@@ -828,7 +828,7 @@ func stringifyFlag(f Flag) string {
+ 	usageWithDefault := strings.TrimSpace(fmt.Sprintf("%s%s", usage, defaultValueString))
+ 
+ 	return withEnvHint(fv.FieldByName("EnvVar").String(),
+-		fmt.Sprintf("%s\t%s", prefixedNames(fv.FieldByName("Name").String(), placeholder), usageWithDefault))
++		fmt.Sprintf("%s\n\t\t\t%s", prefixedNames(fv.FieldByName("Name").String(), placeholder), usageWithDefault))
+ }
+ 
+ func stringifyIntSliceFlag(f IntSliceFlag) string {
+diff --git a/etcdctl/ctlv2/ctl.go b/etcdctl/ctlv2/ctl.go
+index e949b06..eb5170a 100644
+--- a/etcdctl/ctlv2/ctl.go
++++ b/etcdctl/ctlv2/ctl.go
+@@ -42,6 +42,68 @@ func Start(apiv string) {
+ 			"   Set environment variable ETCDCTL_API=3 to use v3 API or ETCDCTL_API=2 to use v2 API."
+ 	}
+ 
++	cli.AppHelpTemplate = `.TH "ETCD" "1" " etcd User Manuals" "Etcd contributors" "Nov 2017"  ""
++.SH NAME:
++{{.Name}} - {{.Usage}}
++
++{{if .Version}}
++.SH VERSION:
++   {{.Version}}
++{{end}}
++
++.SH USAGE:
++   {{.HelpName}} {{if .VisibleFlags}}[global options]{{end}}{{if .Commands}} command [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}
++   {{if .Commands}}
++
++.SH COMMANDS:
++{{range .Commands}}{{if not .HideHelp}}\fB{{ .Name }}\fP{{ "\n\t\t\t" }}{{.Usage}}{{ "\n" }}
++
++{{end}}{{end}}{{end}}{{if .VisibleFlags}}
++
++.SH GLOBAL OPTIONS:
++{{range .VisibleFlags}}{{ . }}
++
++{{end}}{{end}}
++
++.SH SEE ALSO
++{{range .Commands}}{{if not .HideHelp}}{{if ne .Name "help" }}\fBetcdctl-{{ .Name }}(1)\fP,
++{{end}}{{end}}{{end}}
++`
++
++	cli.CommandHelpTemplate = `.TH "ETCD" "1" " etcd User Manuals" "Etcd contributors" "Nov 2017"  ""
++.SH NAME:
++   {{.HelpName}} - {{.Usage}}
++
++.SH USAGE:
++   {{.HelpName}}{{if .VisibleFlags}} [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}
++
++{{if .VisibleFlags}}
++.SH OPTIONS:
++   {{range .VisibleFlags}}{{.}}
++   {{end}}{{end}}
++`
++
++
++	cli.SubcommandHelpTemplate = `.TH "ETCD" "1" " etcd User Manuals" "Etcd contributors" "Nov 2017"  ""
++.SH NAME:
++   {{.HelpName}} - {{.Usage}}
++
++.SH USAGE:
++   {{.HelpName}} command{{if .VisibleFlags}} [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}
++
++.SH COMMANDS:
++{{range .VisibleCategories}}{{if .Name}}
++{{.Name}}:{{end}}{{range .VisibleCommands}}
++\fB{{ .Name }}\fP{{"\n\t\t\t"}}{{.Usage}}{{ "\n" }}{{end}}
++{{end}}
++
++{{if .VisibleFlags}}
++.SH OPTIONS:
++{{range .VisibleFlags}}{{.}}
++{{end}}{{end}}
++`
++
++
+ 	app.Flags = []cli.Flag{
+ 		cli.BoolFlag{Name: "debug", Usage: "output cURL commands which can be used to reproduce the request"},
+ 		cli.BoolFlag{Name: "no-sync", Usage: "don't synchronize cluster information before sending request"},
+diff --git a/etcdctl/ctlv3/ctl_nocov.go b/etcdctl/ctlv3/ctl_nocov.go
+index 52751fe..e3089cf 100644
+--- a/etcdctl/ctlv3/ctl_nocov.go
++++ b/etcdctl/ctlv3/ctl_nocov.go
+@@ -16,13 +16,20 @@
+ 
+ package ctlv3
+ 
+-import "github.com/coreos/etcd/etcdctl/ctlv3/command"
++//import "github.com/coreos/etcd/etcdctl/ctlv3/command"
++import "github.com/spf13/cobra"
+ 
+ func Start() {
+ 	rootCmd.SetUsageFunc(usageFunc)
+ 	// Make help just show the usage
+ 	rootCmd.SetHelpTemplate(`{{.UsageString}}`)
+-	if err := rootCmd.Execute(); err != nil {
+-		command.ExitWithError(command.ExitError, err)
++	//if err := rootCmd.Execute(); err != nil {
++	//	command.ExitWithError(command.ExitError, err)
++	//}
++	header := &cobra.GenManHeader{
++		Title: "etcdctl3",
++		Section: "1",
+ 	}
++
++	cobra.GenManTree(rootCmd, header, "")
+ }
+-- 
+2.7.5
+
