@@ -38,7 +38,6 @@
   environment:
     GOPATH: "{{ go_path }}"
     PATH: "{{ ansible_env.PATH }}:{{ go_path }}/bin"
-    https_proxy: squid.redhat.com:3128
   block:
     - shell: mkdir gopath; ln -s {{ src_dir }}/Godeps/_workspace/src gopath/src; rm gopath/src/github.com/coreos/etcd; ln -s {{ src_dir }} gopath/src/github.com/coreos/etcd
       args:
