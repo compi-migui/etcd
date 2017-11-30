@@ -1,18 +1,28 @@
-%if 0%{?fedora}
+# If any of the following macros should be set otherwise,
+# you can wrap any of them with the following conditions:
+# - %%if 0%%{centos} == 7
+# - %%if 0%%{?rhel} == 7
+# - %%if 0%%{?fedora} == 23
+# Or just test for particular distribution:
+# - %%if 0%%{centos}
+# - %%if 0%%{?rhel}
+# - %%if 0%%{?fedora}
+#
+# Be aware, on centos, both %%rhel and %%centos are set. If you want to test
+# rhel specific macros, you can use %%if 0%%{?rhel} && 0%%{?centos} == 0 condition.
+# (Don't forget to replace double percentage symbol with single one in order to apply a condition)
+
+# Generate devel rpm
 %global with_devel 1
+# Build project from bundled dependencies
 %global with_bundled 0
+# Build with debug info rpm
 %global with_debug 1
+# Run tests in check section
 # Some tests fails and it takes a lot of time to investigate
-# what is wrong
 %global with_check 0
+# Generate unit-test rpm
 %global with_unit_test 1
-%else
-%global with_devel 0
-%global with_bundled 1
-%global with_debug 0
-%global with_check 0
-%global with_unit_test 0
-%endif
 
 %if 0%{?with_debug}
 %global _dwz_low_mem_die_limit 0
@@ -37,7 +47,7 @@
 
 Name:		%{repo}
 Version:	3.2.7
-Release:	2%{?dist}
+Release:	3%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{provider_prefix}
@@ -449,6 +459,9 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Thu Nov 30 2017 Jan Chaloupka <jchaloup@redhat.com> - 3.2.7-3
+- Polish the spec file
+
 * Tue Nov 07 2017 Jan Chaloupka <jchaloup@redhat.com> - 3.2.7-2
 - Generate man pages
 
