@@ -1,0 +1,39 @@
+- hosts: localhost
+  tags:
+    - classic
+  tasks:
+    - include_tasks: tasks/update_os_vars.yml
+    - include_tasks: tasks/install_etcd_src.yml
+    - include_tasks: tasks/prepare_e2e.yml
+    - name: Run e2e test
+      shell: go test -timeout 10m -v ./e2e &> /var/tmp/test.log
+      args:
+        chdir: "{{ src_dir }}"
+      ignore_errors: true
+      environment:
+        GOPATH: "{{ src_dir }}/gopath:{{ go_path }}"
+        EXPECT_DEBUG: true
+    - always:
+      - name: Pull out the logs
+        fetch:
+          dest: "{{ artifacts }}/"
+          src: "/var/tmp/test.log"
+          flat: yes
+      - include_role:
+          name: remove_req_dir
+        vars:
+          path: "{{ item.path }}"
+          patterns: "{{ item.patterns }}"
+          file_type: directory
+        with_items:
+                - { path: "{{src_dir}}", patterns: ""}
+                - { path: "/var/tmp/cafile", patterns: ""}
+                - { path: "/tmp", patterns: "test*"}
+      - name: Check the results
+        shell: grep "^\-\-\- FAIL" "{{ artifacts}}"/test.log | awk '{print $3}'
+        register: failed_cases
+        ignore_errors: true
+      - name: Store failed cases
+        local_action: copy content={{ failed_cases.stdout }} dest={{ artifacts }}/failed_cases.log
+        when: failed_cases.stdout != ""
+        failed_when: failed_cases.stdout

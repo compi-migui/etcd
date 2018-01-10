@@ -1,0 +1,19 @@
+---
+
+- name: Install request packages
+  package:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - "{{ req_packages }}"
+- include_role:
+    name: install_src_rpm
+  vars:
+    package_name: etcd
+- include_role:
+    name: install_golang_dep_from_spec
+  vars:
+    package_name: etcd
+  when: is_fedora
+- name: Install etcd source code
+  shell: rpmbuild -bp /root/rpmbuild/SPECS/etcd.spec

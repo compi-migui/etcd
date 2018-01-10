@@ -1,0 +1,29 @@
+---
+
+- name: Get installed rpm information
+  yum:
+    list: "{{ package_name }}"
+  register: etcd_info_output
+- name: Set up src url
+  set_fact:
+    etcd_src_url: "{{ rpm_base_url }}/etcd/{{ item['version'] }}/{{ item['release'] }}/src/etcd-{{ item['version'] }}-{{ item['release'] }}.src.rpm"
+    package_path: "/var/tmp/{{ package_name }}.src.rpm"
+  when: item ['yumstate'] == 'installed'
+  with_items:
+    - "{{ etcd_info_output.results }}"
+- name: Remove the exist target file
+  file:
+    path: "{{ package_path }}"
+    state: absent
+- name: Download src package
+  get_url:
+    url: "{{ etcd_src_url }}"
+    dest: "{{ package_path }}"
+- name: Install src package with rpm
+  shell: rpm -ivh {{ package_path }}
+- name: Get commit from SPEC file
+  shell: awk '/^%global\scommit/{print $3}' /root/rpmbuild/SPECS/{{ package_name }}.spec
+  register: commit
+- name: Set src directory
+  set_fact:
+    src_dir: /root/rpmbuild/BUILD/{{ package_name }}-{{ commit.stdout}}

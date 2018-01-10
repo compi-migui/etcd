@@ -1,0 +1,13 @@
+---
+
+- name: Get depended golang lines from spec
+  shell: "{% raw %} grep '^BuildRequires: golang' {% endraw %} /root/rpmbuild/SPECS/{{ package_name }}.spec | sort |uniq > /var/tmp/br"
+- name: Turned the spec lines into packages
+  shell: python "{{ role_path }}"/../../files/get_golang_pkgs.py -f /var/tmp/br
+  register: reqs
+- name: Install the packages required
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - "{{ reqs.stdout_lines }}"

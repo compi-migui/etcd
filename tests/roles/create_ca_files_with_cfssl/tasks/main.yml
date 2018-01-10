@@ -1,0 +1,30 @@
+---
+
+- name: Create cafile directory
+  file:
+    path: "/var/tmp/cafile"
+    state: directory
+- name: Get cfssl from github
+  shell: go get -u github.com/cloudflare/cfssl/cmd/...
+- name:
+  template:
+    src: "{{ item }}.j2"
+    dest: "/var/tmp/cafile/{{ item }}"
+  with_items:
+    - ca-csr.json
+    - ca-config.json
+    - req-csr.json
+- name: Generate CA certificate 
+  shell: cfssl genkey -initca ca-csr.json | cfssljson -bare ca
+  args:
+    chdir: /var/tmp/cafile
+- name: Generate certificate and private key with CA
+  shell: cfssl gencert -ca ca.pem -ca-key ca-key.pem -config ca-config.json req-csr.json | cfssljson -bare {{ item }}
+  args:
+    chdir: /var/tmp/cafile
+  with_items:
+    - "{{ cert_names }}"
+- name: Copy needed certificates and private keys to destination
+  shell: cp -f /var/tmp/cafile/{{ item.src }} {{ src_dir }}/integration/fixtures/{{ item.dst }}
+  with_items:
+    - "{{ cert_srcs_dsts }}"
