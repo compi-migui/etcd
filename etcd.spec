@@ -47,7 +47,7 @@
 
 Name:		%{repo}
 Version:	3.2.7
-Release:	3%{?dist}
+Release:	4%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:		https://%{provider_prefix}
@@ -459,6 +459,9 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %endif
 
 %changelog
+* Wed Feb 07 2018 Fedora Release Engineering <releng@fedoraproject.org> - 3.2.7-4
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_28_Mass_Rebuild
+
 * Thu Nov 30 2017 Jan Chaloupka <jchaloup@redhat.com> - 3.2.7-3
 - Polish the spec file
 
