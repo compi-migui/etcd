@@ -1,67 +1,22 @@
-# If any of the following macros should be set otherwise,
-# you can wrap any of them with the following conditions:
-# - %%if 0%%{centos} == 7
-# - %%if 0%%{?rhel} == 7
-# - %%if 0%%{?fedora} == 23
-# Or just test for particular distribution:
-# - %%if 0%%{centos}
-# - %%if 0%%{?rhel}
-# - %%if 0%%{?fedora}
-#
-# Be aware, on centos, both %%rhel and %%centos are set. If you want to test
-# rhel specific macros, you can use %%if 0%%{?rhel} && 0%%{?centos} == 0 condition.
-# (Don't forget to replace double percentage symbol with single one in order to apply a condition)
-
-# Generate devel rpm
-%global with_devel 1
-# Build project from bundled dependencies
-%global with_bundled 0
-# Build with debug info rpm
-%global with_debug 1
-# Run tests in check section
-# Some tests fails and it takes a lot of time to investigate
-%global with_check 0
-# Generate unit-test rpm
-%global with_unit_test 1
-
-%if 0%{?with_debug}
-%global _dwz_low_mem_die_limit 0
-%else
-%global debug_package   %{nil}
-%endif
-
-%if ! 0%{?gobuild:1}
-%define gobuild(o:) go build -ldflags "${LDFLAGS:-} -B 0x$(head -c20 /dev/urandom|od -An -tx1|tr -d ' \\n')" -a -v -x %{?**}; 
-%endif
-
-%global provider        github
-%global provider_tld    com
-%global project         coreos
-%global repo            etcd
-# https://github.com/coreos/etcd
-%global provider_prefix %{provider}.%{provider_tld}/%{project}/%{repo}
-%global import_path     %{provider_prefix}
+# http://github.com/coreos/etcd
+%global goipath         github.com/coreos/etcd
 %global commit          bb66589f8cf18960c7f3d56b1b83753caeed9c7a
-%global shortcommit     %(c=%{commit}; echo ${c:0:7})
+
+%gometa -i
+
 %global man_version     3.2.7
 
-Name:		%{repo}
+Name:           etcd
 Version:	3.2.7
-Release:	4%{?dist}
+Release:	5%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
-URL:		https://%{provider_prefix}
-Source0:	https://%{provider_prefix}/archive/%{commit}/%{repo}-%{shortcommit}.tar.gz
+URL:            %{gourl}
+Source0:        %{gosource}
 Source1:	%{name}.service
 Source2:	%{name}.conf
 Source3:        man-%{man_version}.tar.gz
 
-# e.g. el6 has ppc64 arch without gcc-go, so EA tag is required
-ExclusiveArch:  %{ix86} x86_64 %{arm} aarch64 ppc64le s390x
-# If go_compiler is not set to 1, there is no virtual provide. Use golang instead.
-BuildRequires:  %{?go_compiler:compiler(go-compiler)}%{!?go_compiler:golang}
-
-%if ! 0%{?with_bundled}
 BuildRequires: golang(github.com/bgentry/speakeasy)
 BuildRequires: golang(github.com/boltdb/bolt)
 BuildRequires: golang(github.com/cheggaaa/pb)
@@ -102,24 +57,16 @@ BuildRequires: golang(google.golang.org/grpc/metadata)
 BuildRequires: golang(google.golang.org/grpc/naming)
 BuildRequires: golang(google.golang.org/grpc/peer)
 BuildRequires: golang(google.golang.org/grpc/transport)
-%endif
 
 BuildRequires:	systemd
-
-Requires(pre):	shadow-utils
-Requires(post): systemd
-Requires(preun): systemd
-Requires(postun): systemd
 
 %description
 A highly-available key value store for shared configuration.
 
-%if 0%{?with_devel}
 %package devel
 Summary:        etcd golang devel libraries
 BuildArch:      noarch
 
-%if 0%{?with_check}
 BuildRequires: golang(github.com/bgentry/speakeasy)
 BuildRequires: golang(github.com/boltdb/bolt)
 BuildRequires: golang(github.com/cheggaaa/pb)
@@ -156,185 +103,30 @@ BuildRequires: golang(google.golang.org/grpc/credentials)
 BuildRequires: golang(google.golang.org/grpc/grpclog)
 BuildRequires: golang(google.golang.org/grpc/metadata)
 BuildRequires: golang(google.golang.org/grpc/naming)
-%endif
-
-Requires: golang(github.com/bgentry/speakeasy)
-Requires: golang(github.com/boltdb/bolt)
-Requires: golang(github.com/cheggaaa/pb)
-Requires: golang(github.com/cockroachdb/cmux)
-Requires: golang(github.com/coreos/go-semver/semver)
-Requires: golang(github.com/coreos/go-systemd/daemon)
-Requires: golang(github.com/coreos/go-systemd/util)
-Requires: golang(github.com/coreos/pkg/capnslog)
-Requires: golang(github.com/dustin/go-humanize)
-Requires: golang(github.com/ghodss/yaml)
-Requires: golang(github.com/gogo/protobuf/proto)
-Requires: golang(github.com/golang/protobuf/proto)
-Requires: golang(github.com/google/btree)
-Requires: golang(github.com/grpc-ecosystem/go-grpc-prometheus)
-Requires: golang(github.com/grpc-ecosystem/grpc-gateway/runtime)
-Requires: golang(github.com/grpc-ecosystem/grpc-gateway/utilities)
-Requires: golang(github.com/jonboulle/clockwork)
-Requires: golang(github.com/karlseguin/ccache)
-Requires: golang(github.com/kr/pty)
-Requires: golang(github.com/olekukonko/tablewriter)
-Requires: golang(github.com/prometheus/client_golang/prometheus)
-Requires: golang(github.com/spf13/cobra)
-Requires: golang(github.com/spf13/pflag)
-Requires: golang(github.com/ugorji/go/codec)
-Requires: golang(github.com/urfave/cli)
-Requires: golang(github.com/xiang90/probing)
-Requires: golang(golang.org/x/crypto/bcrypt)
-Requires: golang(golang.org/x/net/context)
-Requires: golang(golang.org/x/net/http2)
-Requires: golang(golang.org/x/time/rate)
-Requires: golang(google.golang.org/grpc)
-Requires: golang(google.golang.org/grpc/codes)
-Requires: golang(google.golang.org/grpc/credentials)
-Requires: golang(google.golang.org/grpc/grpclog)
-Requires: golang(google.golang.org/grpc/metadata)
-Requires: golang(google.golang.org/grpc/naming)
-
-Provides: golang(%{import_path}/alarm) = %{version}-%{release}
-Provides: golang(%{import_path}/auth) = %{version}-%{release}
-Provides: golang(%{import_path}/auth/authpb) = %{version}-%{release}
-Provides: golang(%{import_path}/client) = %{version}-%{release}
-Provides: golang(%{import_path}/client/integration) = %{version}-%{release}
-Provides: golang(%{import_path}/clientv3) = %{version}-%{release}
-Provides: golang(%{import_path}/clientv3/concurrency) = %{version}-%{release}
-Provides: golang(%{import_path}/clientv3/integration) = %{version}-%{release}
-Provides: golang(%{import_path}/clientv3/mirror) = %{version}-%{release}
-Provides: golang(%{import_path}/clientv3/naming) = %{version}-%{release}
-Provides: golang(%{import_path}/compactor) = %{version}-%{release}
-Provides: golang(%{import_path}/contrib/recipes) = %{version}-%{release}
-Provides: golang(%{import_path}/discovery) = %{version}-%{release}
-Provides: golang(%{import_path}/e2e) = %{version}-%{release}
-Provides: golang(%{import_path}/embed) = %{version}-%{release}
-Provides: golang(%{import_path}/error) = %{version}-%{release}
-Provides: golang(%{import_path}/etcdctl/ctlv2) = %{version}-%{release}
-Provides: golang(%{import_path}/etcdctl/ctlv2/command) = %{version}-%{release}
-Provides: golang(%{import_path}/etcdctl/ctlv3) = %{version}-%{release}
-Provides: golang(%{import_path}/etcdctl/ctlv3/command) = %{version}-%{release}
-Provides: golang(%{import_path}/etcdmain) = %{version}-%{release}
-Provides: golang(%{import_path}/etcdserver) = %{version}-%{release}
-Provides: golang(%{import_path}/etcdserver/api) = %{version}-%{release}
-Provides: golang(%{import_path}/etcdserver/api/v2http) = %{version}-%{release}
-Provides: golang(%{import_path}/etcdserver/api/v2http/httptypes) = %{version}-%{release}
-Provides: golang(%{import_path}/etcdserver/api/v3rpc) = %{version}-%{release}
-Provides: golang(%{import_path}/etcdserver/api/v3rpc/rpctypes) = %{version}-%{release}
-Provides: golang(%{import_path}/etcdserver/auth) = %{version}-%{release}
-Provides: golang(%{import_path}/etcdserver/etcdserverpb) = %{version}-%{release}
-Provides: golang(%{import_path}/etcdserver/membership) = %{version}-%{release}
-Provides: golang(%{import_path}/etcdserver/stats) = %{version}-%{release}
-Provides: golang(%{import_path}/integration) = %{version}-%{release}
-Provides: golang(%{import_path}/lease) = %{version}-%{release}
-Provides: golang(%{import_path}/lease/leasehttp) = %{version}-%{release}
-Provides: golang(%{import_path}/lease/leasepb) = %{version}-%{release}
-Provides: golang(%{import_path}/mvcc) = %{version}-%{release}
-Provides: golang(%{import_path}/mvcc/backend) = %{version}-%{release}
-Provides: golang(%{import_path}/mvcc/mvccpb) = %{version}-%{release}
-Provides: golang(%{import_path}/pkg/adt) = %{version}-%{release}
-Provides: golang(%{import_path}/pkg/contention) = %{version}-%{release}
-Provides: golang(%{import_path}/pkg/cors) = %{version}-%{release}
-Provides: golang(%{import_path}/pkg/cpuutil) = %{version}-%{release}
-Provides: golang(%{import_path}/pkg/crc) = %{version}-%{release}
-Provides: golang(%{import_path}/pkg/expect) = %{version}-%{release}
-Provides: golang(%{import_path}/pkg/fileutil) = %{version}-%{release}
-Provides: golang(%{import_path}/pkg/flags) = %{version}-%{release}
-Provides: golang(%{import_path}/pkg/httputil) = %{version}-%{release}
-Provides: golang(%{import_path}/pkg/idutil) = %{version}-%{release}
-Provides: golang(%{import_path}/pkg/ioutil) = %{version}-%{release}
-Provides: golang(%{import_path}/pkg/logutil) = %{version}-%{release}
-Provides: golang(%{import_path}/pkg/mock/mockstorage) = %{version}-%{release}
-Provides: golang(%{import_path}/pkg/mock/mockstore) = %{version}-%{release}
-Provides: golang(%{import_path}/pkg/mock/mockwait) = %{version}-%{release}
-Provides: golang(%{import_path}/pkg/monotime) = %{version}-%{release}
-Provides: golang(%{import_path}/pkg/netutil) = %{version}-%{release}
-Provides: golang(%{import_path}/pkg/osutil) = %{version}-%{release}
-Provides: golang(%{import_path}/pkg/pathutil) = %{version}-%{release}
-Provides: golang(%{import_path}/pkg/pbutil) = %{version}-%{release}
-Provides: golang(%{import_path}/pkg/report) = %{version}-%{release}
-Provides: golang(%{import_path}/pkg/runtime) = %{version}-%{release}
-Provides: golang(%{import_path}/pkg/schedule) = %{version}-%{release}
-Provides: golang(%{import_path}/pkg/stringutil) = %{version}-%{release}
-Provides: golang(%{import_path}/pkg/testutil) = %{version}-%{release}
-Provides: golang(%{import_path}/pkg/tlsutil) = %{version}-%{release}
-Provides: golang(%{import_path}/pkg/transport) = %{version}-%{release}
-Provides: golang(%{import_path}/pkg/types) = %{version}-%{release}
-Provides: golang(%{import_path}/pkg/wait) = %{version}-%{release}
-Provides: golang(%{import_path}/proxy/grpcproxy) = %{version}-%{release}
-Provides: golang(%{import_path}/proxy/grpcproxy/cache) = %{version}-%{release}
-Provides: golang(%{import_path}/proxy/httpproxy) = %{version}-%{release}
-Provides: golang(%{import_path}/proxy/tcpproxy) = %{version}-%{release}
-Provides: golang(%{import_path}/raft) = %{version}-%{release}
-Provides: golang(%{import_path}/raft/raftpb) = %{version}-%{release}
-Provides: golang(%{import_path}/raft/rafttest) = %{version}-%{release}
-Provides: golang(%{import_path}/rafthttp) = %{version}-%{release}
-Provides: golang(%{import_path}/snap) = %{version}-%{release}
-Provides: golang(%{import_path}/snap/snappb) = %{version}-%{release}
-Provides: golang(%{import_path}/store) = %{version}-%{release}
-Provides: golang(%{import_path}/tools/benchmark/cmd) = %{version}-%{release}
-Provides: golang(%{import_path}/tools/functional-tester/etcd-agent/client) = %{version}-%{release}
-Provides: golang(%{import_path}/tools/functional-tester/etcd-runner/command) = %{version}-%{release}
-Provides: golang(%{import_path}/version) = %{version}-%{release}
-Provides: golang(%{import_path}/wal) = %{version}-%{release}
-Provides: golang(%{import_path}/wal/walpb) = %{version}-%{release}
 
 %description devel
 golang development libraries for etcd, a highly-available key value store for
 shared configuration.
-%endif
-
-%if 0%{?with_unit_test} && 0%{?with_devel}
-%package unit-test
-Summary:         Unit tests for %{name} package
-# If go_compiler is not set to 1, there is no virtual provide. Use golang instead.
-BuildRequires:  %{?go_compiler:compiler(go-compiler)}%{!?go_compiler:golang}
-
-%if 0%{?with_check}
-#Here comes all BuildRequires: PACKAGE the unit tests
-#in %%check section need for running
-%endif
-
-# test subpackage tests code from devel subpackage
-Requires:        %{name}-devel = %{version}-%{release}
-
-%description unit-test
-%{summary}
-
-This package contains unit tests for project
-providing packages with %{import_path} prefix.
-%endif
 
 %prep
 %setup -q -n man-%{man_version} -T -b 3
-%setup -q -n %{name}-%{commit}
+%gosetup
+
 mkdir -p man/man1
 cp ../man-%{man_version}/*.1 man/man1/.
 
-# move content of vendor under Godeps as has been so far
-mkdir -p Godeps/_workspace/src
-mv cmd/vendor/* Godeps/_workspace/src/.
-
 sed -i 's/"gopkg\.in\/cheggaaa\/pb\.v1/"github\.com\/cheggaaa\/pb/g' $(find . -name '*.go')
+#"
 
 %build
-mkdir -p src/github.com/coreos
-ln -s ../../../ src/github.com/coreos/etcd
+%gobuildroot
 
-%if ! 0%{?with_bundled}
-export GOPATH=$(pwd):%{gopath}
-%else
-export GOPATH=$(pwd):$(pwd)/Godeps/_workspace:%{gopath}
-%endif
-
-export LDFLAGS="-X %{import_path}/version.GitSHA=%{shortcommit}"
-%gobuild -o bin/etcd %{import_path}/cmd/etcd
-%gobuild -o bin/etcdctl %{import_path}/etcdctl
+%gobuild -o _bin/etcd    %{goipath}/cmd/etcd
+%gobuild -o _bin/etcdctl %{goipath}/cmd/etcdctl
 
 %install
-install -D -p -m 0755 bin/%{name} %{buildroot}%{_bindir}/%{name}
-install -D -p -m 0755 bin/%{name}ctl %{buildroot}%{_bindir}/%{name}ctl
+install -D -p -m 0755 _bin/%{name} %{buildroot}%{_bindir}/%{name}
+install -D -p -m 0755 _bin/%{name}ctl %{buildroot}%{_bindir}/%{name}ctl
 install -D -p -m 0644 %{SOURCE1} %{buildroot}%{_unitdir}/%{name}.service
 install -d -m 0755 %{buildroot}%{_sysconfdir}/%{name}
 install -m 644 -t %{buildroot}%{_sysconfdir}/%{name} %{SOURCE2}
@@ -343,93 +135,15 @@ install -m 644 -t %{buildroot}%{_sysconfdir}/%{name} %{SOURCE2}
 install -d %{buildroot}%{_mandir}/man1
 install -p -m 644 man/man1/* %{buildroot}%{_mandir}/man1
 
-
 # And create /var/lib/etcd
 install -d -m 0755 %{buildroot}%{_sharedstatedir}/%{name}
 
 # source codes for building projects
-%if 0%{?with_devel}
-install -d -p %{buildroot}/%{gopath}/src/%{import_path}/
-echo "%%dir %%{gopath}/src/%%{import_path}/." >> devel.file-list
-# find all *.go but no *_test.go files and generate devel.file-list
-for file in $(find . -iname "*.go" \! -iname "*_test.go") ; do
-    echo "%%dir %%{gopath}/src/%%{import_path}/$(dirname $file)" >> devel.file-list
-    install -d -p %{buildroot}/%{gopath}/src/%{import_path}/$(dirname $file)
-    cp -pav $file %{buildroot}/%{gopath}/src/%{import_path}/$file
-    echo "%%{gopath}/src/%%{import_path}/$file" >> devel.file-list
-done
-%endif
-
-# testing files for this project
-%if 0%{?with_unit_test} && 0%{?with_devel}
-install -d -p %{buildroot}/%{gopath}/src/%{import_path}/
-# find all *_test.go files and generate unit-test.file-list
-for file in $(find . -iname "*_test.go"); do
-    echo "%%dir %%{gopath}/src/%%{import_path}/$(dirname $file)" >> devel.file-list
-    install -d -p %{buildroot}/%{gopath}/src/%{import_path}/$(dirname $file)
-    cp -pav $file %{buildroot}/%{gopath}/src/%{import_path}/$file
-    echo "%%{gopath}/src/%%{import_path}/$file" >> unit-test.file-list
-done
-
-install -dp %{buildroot}/%{gopath}/src/%{import_path}/integration/
-cp -rpav integration/fixtures %{buildroot}/%{gopath}/src/%{import_path}/integration/.
-echo "%%{gopath}/src/%%{import_path}/integration/fixtures" >> unit-test.file-list
-
-install -dp %{buildroot}/%{gopath}/src/%{import_path}/etcdserver/api/v2http/testdata
-cp -rpav etcdserver/api/v2http/testdata %{buildroot}/%{gopath}/src/%{import_path}/etcdserver/api/v2http/.
-echo "%%{gopath}/src/%%{import_path}/etcdserver/api/v2http/testdata" >> unit-test.file-list
-%endif
-
-%if 0%{?with_devel}
-sort -u -o devel.file-list devel.file-list
-%endif
+%goinstall integration/fixtures etcdserver/api/v2http/testdata
 
 %check
-%if 0%{?with_check} && 0%{?with_unit_test} && 0%{?with_devel}
-%if ! 0%{?with_bundled}
-export GOPATH=%{buildroot}/%{gopath}:%{gopath}
-%else
-export GOPATH=%{buildroot}/%{gopath}:$(pwd)/Godeps/_workspace:%{gopath}
-%endif
-
-%if ! 0%{?gotest:1}
-%global gotest go test
-%endif
-
-%ifarch x86_64
-RACE="--race"
-%else
-RACE=""
-%endif
-
-# unit-tests
-# TODO(jchaloup): read all the envs from test file
-export IGNORE_PKGS="(cmd|vendor|etcdserverpb|rafttest)"
-export INTEGRATION_PKGS="(integration|e2e|contrib|functional-tester)"
-export TEST_PKGS=`find . -name \*_test.go | while read a; do dirname $a; done | sort | uniq | egrep -v "$IGNORE_PKGS" | sed "s|\./||g"`
-export TESTS=`echo "$TEST_PKGS" | egrep -v "$INTEGRATION_PKGS"`
-
-for test in ${TESTS}; do
-%gotest -timeout 3m -cover ${RACE} -cpu 1,2,4 -run=Test github.com/coreos/etcd/${test}
-done
-
-./test
-
-%endif
-
-%pre
-getent group %{name} >/dev/null || groupadd -r %{name}
-getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/%{name} \
-	-s /sbin/nologin -c "etcd user" %{name}
-
-%post
-%systemd_post %{name}.service
-
-%preun
-%systemd_preun %{name}.service
-
-%postun
-%systemd_postun %{name}.service
+# tools/functional-tester/etcd-agent expects etcd binary at GOPATH/bin/etcd
+%gochecks -d clientv3 -d e2e -d tools/functional-tester/etcd-agent
 
 #define license tag if not already defined
 %{!?_licensedir:%global license %doc}
@@ -444,21 +158,15 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %{_unitdir}/%{name}.service
 %{_mandir}/man1/*.1*
 
-%if 0%{?with_devel}
 %files devel -f devel.file-list
 %license LICENSE
 %doc *.md
 %doc glide.lock
-%dir %{gopath}/src/%{provider}.%{provider_tld}/%{project}
-%endif
-
-%if 0%{?with_unit_test}
-%files unit-test -f unit-test.file-list
-%license LICENSE
-%doc *.md
-%endif
 
 %changelog
+* Tue Mar 06 2018 Jan Chaloupka <jchaloup@redhat.com> - 3.2.7-5.gitbb66589
+- Update to spec 3.0
+
 * Wed Feb 07 2018 Fedora Release Engineering <releng@fedoraproject.org> - 3.2.7-4
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_28_Mass_Rebuild
 
