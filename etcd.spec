@@ -1,14 +1,14 @@
 # http://github.com/coreos/etcd
 %global goipath         github.com/coreos/etcd
-%global commit          bb66589f8cf18960c7f3d56b1b83753caeed9c7a
+%global gcommit         121edf0467052d55876a817b89875fb39a99bf78
 
 %gometa -i
 
-%global man_version     3.2.7
+%global man_version     3.2.16
 
 Name:           etcd
-Version:	3.2.7
-Release:	5%{?dist}
+Version:	3.2.16
+Release:	1%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:            %{gourl}
@@ -16,6 +16,8 @@ Source0:        %{gosource}
 Source1:	%{name}.service
 Source2:	%{name}.conf
 Source3:        man-%{man_version}.tar.gz
+
+Patch0:         Fix-format-errors.patch
 
 BuildRequires: golang(github.com/bgentry/speakeasy)
 BuildRequires: golang(github.com/boltdb/bolt)
@@ -68,23 +70,24 @@ Summary:        etcd golang devel libraries
 BuildArch:      noarch
 
 BuildRequires: golang(github.com/bgentry/speakeasy)
-BuildRequires: golang(github.com/boltdb/bolt)
 BuildRequires: golang(github.com/cheggaaa/pb)
 BuildRequires: golang(github.com/cockroachdb/cmux)
+BuildRequires: golang(github.com/coreos/bbolt)
 BuildRequires: golang(github.com/coreos/go-semver/semver)
 BuildRequires: golang(github.com/coreos/go-systemd/daemon)
 BuildRequires: golang(github.com/coreos/go-systemd/util)
 BuildRequires: golang(github.com/coreos/pkg/capnslog)
+BuildRequires: golang(github.com/dgrijalva/jwt-go)
 BuildRequires: golang(github.com/dustin/go-humanize)
 BuildRequires: golang(github.com/ghodss/yaml)
 BuildRequires: golang(github.com/gogo/protobuf/proto)
+BuildRequires: golang(github.com/golang/groupcache/lru)
 BuildRequires: golang(github.com/golang/protobuf/proto)
 BuildRequires: golang(github.com/google/btree)
 BuildRequires: golang(github.com/grpc-ecosystem/go-grpc-prometheus)
 BuildRequires: golang(github.com/grpc-ecosystem/grpc-gateway/runtime)
 BuildRequires: golang(github.com/grpc-ecosystem/grpc-gateway/utilities)
 BuildRequires: golang(github.com/jonboulle/clockwork)
-BuildRequires: golang(github.com/karlseguin/ccache)
 BuildRequires: golang(github.com/kr/pty)
 BuildRequires: golang(github.com/olekukonko/tablewriter)
 BuildRequires: golang(github.com/prometheus/client_golang/prometheus)
@@ -96,13 +99,19 @@ BuildRequires: golang(github.com/xiang90/probing)
 BuildRequires: golang(golang.org/x/crypto/bcrypt)
 BuildRequires: golang(golang.org/x/net/context)
 BuildRequires: golang(golang.org/x/net/http2)
+BuildRequires: golang(golang.org/x/net/trace)
 BuildRequires: golang(golang.org/x/time/rate)
+BuildRequires: golang(google.golang.org/genproto/googleapis/api/annotations)
 BuildRequires: golang(google.golang.org/grpc)
 BuildRequires: golang(google.golang.org/grpc/codes)
 BuildRequires: golang(google.golang.org/grpc/credentials)
 BuildRequires: golang(google.golang.org/grpc/grpclog)
+BuildRequires: golang(google.golang.org/grpc/health/grpc_health_v1)
+BuildRequires: golang(google.golang.org/grpc/keepalive)
 BuildRequires: golang(google.golang.org/grpc/metadata)
 BuildRequires: golang(google.golang.org/grpc/naming)
+BuildRequires: golang(google.golang.org/grpc/peer)
+BuildRequires: golang(google.golang.org/grpc/status)
 
 %description devel
 golang development libraries for etcd, a highly-available key value store for
@@ -110,7 +119,8 @@ shared configuration.
 
 %prep
 %setup -q -n man-%{man_version} -T -b 3
-%gosetup
+%gosetup -q
+%patch0 -p1
 
 mkdir -p man/man1
 cp ../man-%{man_version}/*.1 man/man1/.
@@ -143,7 +153,7 @@ install -d -m 0755 %{buildroot}%{_sharedstatedir}/%{name}
 
 %check
 # tools/functional-tester/etcd-agent expects etcd binary at GOPATH/bin/etcd
-%gochecks -d clientv3 -d e2e -d tools/functional-tester/etcd-agent
+%gochecks -d clientv3 -d e2e -d tools/functional-tester/etcd-agent -d integration -d clientv3/integration
 
 #define license tag if not already defined
 %{!?_licensedir:%global license %doc}
@@ -164,6 +174,9 @@ install -d -m 0755 %{buildroot}%{_sharedstatedir}/%{name}
 %doc glide.lock
 
 %changelog
+* Fri Mar 09 2018 Jan Chaloupka <jchaloup@redhat.com> - 3.2.16-1.git121edf0
+- Update to 3.2.16
+
 * Tue Mar 06 2018 Jan Chaloupka <jchaloup@redhat.com> - 3.2.7-5.gitbb66589
 - Update to spec 3.0
 

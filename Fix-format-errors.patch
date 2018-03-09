@@ -1,0 +1,34 @@
+From 89901423d929b66240231196616688cddb39b115 Mon Sep 17 00:00:00 2001
+From: Jan Chaloupka <jchaloup@redhat.com>
+Date: Fri, 9 Mar 2018 17:13:26 +0100
+Subject: [PATCH] Fix format errors
+
+---
+ pkg/pbutil/pbutil_test.go | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/pkg/pbutil/pbutil_test.go b/pkg/pbutil/pbutil_test.go
+index fd361ec..21b1870 100644
+--- a/pkg/pbutil/pbutil_test.go
++++ b/pkg/pbutil/pbutil_test.go
+@@ -24,7 +24,7 @@ func TestMarshaler(t *testing.T) {
+ 	data := []byte("test data")
+ 	m := &fakeMarshaler{data: data}
+ 	if g := MustMarshal(m); !reflect.DeepEqual(g, data) {
+-		t.Errorf("data = %s, want %s", g, m)
++		t.Errorf("data = %s, want #%v", g, m)
+ 	}
+ }
+ 
+@@ -43,7 +43,7 @@ func TestUnmarshaler(t *testing.T) {
+ 	m := &fakeUnmarshaler{}
+ 	MustUnmarshal(m, data)
+ 	if !reflect.DeepEqual(m.data, data) {
+-		t.Errorf("data = %s, want %s", m.data, m)
++		t.Errorf("data = %s, want #%v", m.data, m)
+ 	}
+ }
+ 
+-- 
+2.7.5
+
