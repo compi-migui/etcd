@@ -8,7 +8,7 @@
 
 Name:           etcd
 Version:	3.2.16
-Release:	1%{?dist}
+Release:	2%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:            %{gourl}
@@ -155,6 +155,20 @@ install -d -m 0755 %{buildroot}%{_sharedstatedir}/%{name}
 # tools/functional-tester/etcd-agent expects etcd binary at GOPATH/bin/etcd
 %gochecks -d clientv3 -d e2e -d tools/functional-tester/etcd-agent -d integration -d clientv3/integration
 
+%pre
+getent group %{name} >/dev/null || groupadd -r %{name}
+getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/%{name} \
+	-s /sbin/nologin -c "etcd user" %{name}
+
+%post
+%systemd_post %{name}.service
+
+%preun
+%systemd_preun %{name}.service
+
+%postun
+%systemd_postun %{name}.service
+
 #define license tag if not already defined
 %{!?_licensedir:%global license %doc}
 
@@ -174,6 +188,10 @@ install -d -m 0755 %{buildroot}%{_sharedstatedir}/%{name}
 %doc glide.lock
 
 %changelog
+* Tue Mar 20 2018 Jan Chaloupka <jchaloup@redhat.com> - 3.2.16-2
+- Put back the missing prep, post, preun and postun scripts
+  resolves: #1557356
+
 * Fri Mar 09 2018 Jan Chaloupka <jchaloup@redhat.com> - 3.2.16-1.git121edf0
 - Update to 3.2.16
 
