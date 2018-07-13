@@ -8,7 +8,7 @@
 
 Name:           etcd
 Version:	3.2.16
-Release:	2%{?dist}
+Release:	3%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:            %{gourl}
@@ -188,6 +188,9 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %doc glide.lock
 
 %changelog
+* Fri Jul 13 2018 Fedora Release Engineering <releng@fedoraproject.org> - Forge-specific packaging variables
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_29_Mass_Rebuild
+
 * Tue Mar 20 2018 Jan Chaloupka <jchaloup@redhat.com> - 3.2.16-2
 - Put back the missing prep, post, preun and postun scripts
   resolves: #1557356
