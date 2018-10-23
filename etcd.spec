@@ -1,6 +1,6 @@
 # http://github.com/coreos/etcd
 %global goipath         github.com/coreos/etcd
-%global gcommit         121edf0467052d55876a817b89875fb39a99bf78
+%global commit         121edf0467052d55876a817b89875fb39a99bf78
 
 %gometa -i
 
@@ -8,7 +8,7 @@
 
 Name:           etcd
 Version:	3.2.16
-Release:	3%{?dist}
+Release:	4%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:            %{gourl}
@@ -119,7 +119,7 @@ shared configuration.
 
 %prep
 %setup -q -n man-%{man_version} -T -b 3
-%gosetup -q
+%forgesetup
 %patch0 -p1
 
 mkdir -p man/man1
@@ -188,6 +188,11 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %doc glide.lock
 
 %changelog
+* Tue Oct 23 2018 Nicolas Mailhot <nim@fedoraproject.org>
+- 3.2.16-4
+- redhat-rpm-config-123 triggers bugs in gosetup, remove it from Go spec files as it’s just an alias
+- https://lists.fedoraproject.org/archives/list/devel@lists.fedoraproject.org/message/RWD5YATAYAFWKIDZBB7EB6N5DAO4ZKFM/
+
 * Fri Jul 13 2018 Fedora Release Engineering <releng@fedoraproject.org> - Forge-specific packaging variables
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_29_Mass_Rebuild
 
