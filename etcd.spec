@@ -8,7 +8,7 @@
 
 Name:           etcd
 Version:	3.2.16
-Release:	4%{?dist}
+Release:	5%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:            %{gourl}
@@ -188,6 +188,9 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %doc glide.lock
 
 %changelog
+* Thu Jan 31 2019 Fedora Release Engineering <releng@fedoraproject.org> - Forge-specific packaging variables
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_30_Mass_Rebuild
+
 * Tue Oct 23 2018 Nicolas Mailhot <nim@fedoraproject.org>
 - 3.2.16-4
 - redhat-rpm-config-123 triggers bugs in gosetup, remove it from Go spec files as it’s just an alias
