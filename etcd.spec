@@ -1,14 +1,13 @@
 # http://github.com/coreos/etcd
 %global goipath         github.com/coreos/etcd
-%global commit         121edf0467052d55876a817b89875fb39a99bf78
+Version:	        3.2.16
 
-%gometa -i
+%gometa
 
 %global man_version     3.2.16
 
 Name:           etcd
-Version:	3.2.16
-Release:	5%{?dist}
+Release:	6%{?dist}
 Summary:	A highly-available key value store for shared configuration
 License:	ASL 2.0
 URL:            %{gourl}
@@ -188,7 +187,10 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %doc glide.lock
 
 %changelog
-* Thu Jan 31 2019 Fedora Release Engineering <releng@fedoraproject.org> - Forge-specific packaging variables
+* Sun Feb 17 2019 Elliott Sales de Andrade <quantum.analyst@gmail.com> - 3.2.16-6
+- Fix broken version specification
+
+* Thu Jan 31 2019 Fedora Release Engineering <releng@fedoraproject.org> - 3.2.16-5
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_30_Mass_Rebuild
 
 * Tue Oct 23 2018 Nicolas Mailhot <nim@fedoraproject.org>
@@ -196,7 +198,7 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 - redhat-rpm-config-123 triggers bugs in gosetup, remove it from Go spec files as it’s just an alias
 - https://lists.fedoraproject.org/archives/list/devel@lists.fedoraproject.org/message/RWD5YATAYAFWKIDZBB7EB6N5DAO4ZKFM/
 
-* Fri Jul 13 2018 Fedora Release Engineering <releng@fedoraproject.org> - Forge-specific packaging variables
+* Fri Jul 13 2018 Fedora Release Engineering <releng@fedoraproject.org> - 3.2.16-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_29_Mass_Rebuild
 
 * Tue Mar 20 2018 Jan Chaloupka <jchaloup@redhat.com> - 3.2.16-2
