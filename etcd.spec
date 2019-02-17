@@ -17,6 +17,7 @@ Source2:	%{name}.conf
 Source3:        man-%{man_version}.tar.gz
 
 Patch0:         Fix-format-errors.patch
+Patch1:         https://github.com/etcd-io/etcd/commit/1136ba0e0d4ab628cb13ffd76da47dbea357d0a6.patch
 
 BuildRequires: golang(github.com/bgentry/speakeasy)
 BuildRequires: golang(github.com/boltdb/bolt)
@@ -120,6 +121,7 @@ shared configuration.
 %setup -q -n man-%{man_version} -T -b 3
 %forgesetup
 %patch0 -p1
+%patch1 -p1
 
 mkdir -p man/man1
 cp ../man-%{man_version}/*.1 man/man1/.
@@ -189,6 +191,7 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %changelog
 * Sun Feb 17 2019 Elliott Sales de Andrade <quantum.analyst@gmail.com> - 3.2.16-6
 - Fix broken version specification
+- Backport variadic parameter fix
 
 * Thu Jan 31 2019 Fedora Release Engineering <releng@fedoraproject.org> - 3.2.16-5
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_30_Mass_Rebuild

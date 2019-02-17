@@ -1,0 +1,23 @@
+From 1136ba0e0d4ab628cb13ffd76da47dbea357d0a6 Mon Sep 17 00:00:00 2001
+From: Gyuho Lee <gyuhox@gmail.com>
+Date: Fri, 15 Jun 2018 10:36:17 -0700
+Subject: [PATCH] raft: fix logger variadic parameter
+
+Signed-off-by: Gyuho Lee <gyuhox@gmail.com>
+---
+ raft/logger.go | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/raft/logger.go b/raft/logger.go
+index 92e55b373e..426a77d344 100644
+--- a/raft/logger.go
++++ b/raft/logger.go
+@@ -114,7 +114,7 @@ func (l *DefaultLogger) Fatalf(format string, v ...interface{}) {
+ }
+ 
+ func (l *DefaultLogger) Panic(v ...interface{}) {
+-	l.Logger.Panic(v)
++	l.Logger.Panic(v...)
+ }
+ 
+ func (l *DefaultLogger) Panicf(format string, v ...interface{}) {
