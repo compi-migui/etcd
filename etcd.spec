@@ -1,39 +1,45 @@
-# http://github.com/coreos/etcd
-%global goipath         github.com/coreos/etcd
-Version:	        3.2.16
+# https://github.com/coreos/etcd
+%global goipath         go.etcd.io/etcd
+%global forgeurl        https://github.com/coreos/etcd
+%global oldgoipath      github.com/coreos/etcd
+%global oldgoname       %gorpmname %{oldgoipath}
+%global commit          e1ca3b4434945e57e8e3a451cdbde74a903cc8e1
 
 %gometa
 
-%global man_version     3.2.16
+%global man_version     3.3.12
 
 Name:           etcd
-Release:	6%{?dist}
-Summary:	A highly-available key value store for shared configuration
-License:	ASL 2.0
+Version:        3.3.12
+Release:        1%{?dist}
+Summary:        A highly-available key value store for shared configuration
+License:        ASL 2.0
 URL:            %{gourl}
 Source0:        %{gosource}
-Source1:	%{name}.service
-Source2:	%{name}.conf
+Source1:        %{name}.service
+Source2:        %{name}.conf
 Source3:        man-%{man_version}.tar.gz
-
-Patch0:         Fix-format-errors.patch
-Patch1:         https://github.com/etcd-io/etcd/commit/1136ba0e0d4ab628cb13ffd76da47dbea357d0a6.patch
+# sh genmanpages.sh path_to_built_source
+Source10:       genmanpages.sh
+# Not patches to apply here, but used on the source to generate man pages
+Source11:       0001-hack-etcdmain-to-generate-etcd.1.patch
+Source12:       0001-hack-to-generate-man-pages.patch
 
 BuildRequires: golang(github.com/bgentry/speakeasy)
-BuildRequires: golang(github.com/boltdb/bolt)
-BuildRequires: golang(github.com/cheggaaa/pb)
-BuildRequires: golang(github.com/cockroachdb/cmux)
 BuildRequires: golang(github.com/coreos/go-semver/semver)
 BuildRequires: golang(github.com/coreos/go-systemd/daemon)
-BuildRequires: golang(github.com/coreos/go-systemd/util)
+BuildRequires: golang(github.com/coreos/go-systemd/journal)
 BuildRequires: golang(github.com/coreos/pkg/capnslog)
 BuildRequires: golang(github.com/dgrijalva/jwt-go)
 BuildRequires: golang(github.com/dustin/go-humanize)
 BuildRequires: golang(github.com/ghodss/yaml)
+BuildRequires: golang(github.com/gogo/protobuf/gogoproto)
 BuildRequires: golang(github.com/gogo/protobuf/proto)
 BuildRequires: golang(github.com/golang/groupcache/lru)
 BuildRequires: golang(github.com/golang/protobuf/proto)
 BuildRequires: golang(github.com/google/btree)
+BuildRequires: golang(github.com/google/uuid)
+BuildRequires: golang(github.com/grpc-ecosystem/go-grpc-middleware)
 BuildRequires: golang(github.com/grpc-ecosystem/go-grpc-prometheus)
 BuildRequires: golang(github.com/grpc-ecosystem/grpc-gateway/runtime)
 BuildRequires: golang(github.com/grpc-ecosystem/grpc-gateway/utilities)
@@ -41,99 +47,89 @@ BuildRequires: golang(github.com/jonboulle/clockwork)
 BuildRequires: golang(github.com/kr/pty)
 BuildRequires: golang(github.com/olekukonko/tablewriter)
 BuildRequires: golang(github.com/prometheus/client_golang/prometheus)
+BuildRequires: golang(github.com/prometheus/client_golang/prometheus/promhttp)
+BuildRequires: golang(github.com/prometheus/client_model/go)
+BuildRequires: golang(github.com/soheilhy/cmux)
 BuildRequires: golang(github.com/spf13/cobra)
 BuildRequires: golang(github.com/spf13/pflag)
+BuildRequires: golang(github.com/tmc/grpc-websocket-proxy/wsproxy)
 BuildRequires: golang(github.com/ugorji/go/codec)
 BuildRequires: golang(github.com/urfave/cli)
 BuildRequires: golang(github.com/xiang90/probing)
+BuildRequires: golang(go.uber.org/zap)
+BuildRequires: golang(go.uber.org/zap/zapcore)
 BuildRequires: golang(golang.org/x/crypto/bcrypt)
 BuildRequires: golang(golang.org/x/net/context)
 BuildRequires: golang(golang.org/x/net/http2)
 BuildRequires: golang(golang.org/x/net/trace)
 BuildRequires: golang(golang.org/x/time/rate)
 BuildRequires: golang(google.golang.org/grpc)
+BuildRequires: golang(google.golang.org/grpc/balancer)
 BuildRequires: golang(google.golang.org/grpc/codes)
+BuildRequires: golang(google.golang.org/grpc/connectivity)
 BuildRequires: golang(google.golang.org/grpc/credentials)
 BuildRequires: golang(google.golang.org/grpc/grpclog)
-BuildRequires: golang(google.golang.org/grpc/metadata)
-BuildRequires: golang(google.golang.org/grpc/naming)
-BuildRequires: golang(google.golang.org/grpc/peer)
-BuildRequires: golang(google.golang.org/grpc/transport)
-
-BuildRequires:	systemd
-
-%description
-A highly-available key value store for shared configuration.
-
-%package devel
-Summary:        etcd golang devel libraries
-BuildArch:      noarch
-
-BuildRequires: golang(github.com/bgentry/speakeasy)
-BuildRequires: golang(github.com/cheggaaa/pb)
-BuildRequires: golang(github.com/cockroachdb/cmux)
-BuildRequires: golang(github.com/coreos/bbolt)
-BuildRequires: golang(github.com/coreos/go-semver/semver)
-BuildRequires: golang(github.com/coreos/go-systemd/daemon)
-BuildRequires: golang(github.com/coreos/go-systemd/util)
-BuildRequires: golang(github.com/coreos/pkg/capnslog)
-BuildRequires: golang(github.com/dgrijalva/jwt-go)
-BuildRequires: golang(github.com/dustin/go-humanize)
-BuildRequires: golang(github.com/ghodss/yaml)
-BuildRequires: golang(github.com/gogo/protobuf/proto)
-BuildRequires: golang(github.com/golang/groupcache/lru)
-BuildRequires: golang(github.com/golang/protobuf/proto)
-BuildRequires: golang(github.com/google/btree)
-BuildRequires: golang(github.com/grpc-ecosystem/go-grpc-prometheus)
-BuildRequires: golang(github.com/grpc-ecosystem/grpc-gateway/runtime)
-BuildRequires: golang(github.com/grpc-ecosystem/grpc-gateway/utilities)
-BuildRequires: golang(github.com/jonboulle/clockwork)
-BuildRequires: golang(github.com/kr/pty)
-BuildRequires: golang(github.com/olekukonko/tablewriter)
-BuildRequires: golang(github.com/prometheus/client_golang/prometheus)
-BuildRequires: golang(github.com/spf13/cobra)
-BuildRequires: golang(github.com/spf13/pflag)
-BuildRequires: golang(github.com/ugorji/go/codec)
-BuildRequires: golang(github.com/urfave/cli)
-BuildRequires: golang(github.com/xiang90/probing)
-BuildRequires: golang(golang.org/x/crypto/bcrypt)
-BuildRequires: golang(golang.org/x/net/context)
-BuildRequires: golang(golang.org/x/net/http2)
-BuildRequires: golang(golang.org/x/net/trace)
-BuildRequires: golang(golang.org/x/time/rate)
-BuildRequires: golang(google.golang.org/genproto/googleapis/api/annotations)
-BuildRequires: golang(google.golang.org/grpc)
-BuildRequires: golang(google.golang.org/grpc/codes)
-BuildRequires: golang(google.golang.org/grpc/credentials)
-BuildRequires: golang(google.golang.org/grpc/grpclog)
+BuildRequires: golang(google.golang.org/grpc/health)
 BuildRequires: golang(google.golang.org/grpc/health/grpc_health_v1)
 BuildRequires: golang(google.golang.org/grpc/keepalive)
 BuildRequires: golang(google.golang.org/grpc/metadata)
 BuildRequires: golang(google.golang.org/grpc/naming)
 BuildRequires: golang(google.golang.org/grpc/peer)
+BuildRequires: golang(google.golang.org/grpc/resolver)
+BuildRequires: golang(google.golang.org/grpc/resolver/dns)
+BuildRequires: golang(google.golang.org/grpc/resolver/passthrough)
 BuildRequires: golang(google.golang.org/grpc/status)
+BuildRequires: golang(gopkg.in/cheggaaa/pb.v1)
+BuildRequires: golang(gopkg.in/yaml.v2)
+BuildRequires: golang(go.etcd.io/bbolt)
+%{?systemd_requires}
+BuildRequires: systemd
+Requires(pre): shadow-utils
+
+%description
+A highly-available key value store for shared configuration.
+
+
+%package devel
+Summary:        etcd golang devel libraries
+BuildArch:      noarch
 
 %description devel
-golang development libraries for etcd, a highly-available key value store for
+Golang development libraries for etcd, a highly-available key value store for
 shared configuration.
+
+This package contains compatibility glue for code that still imports the
+%{goipath} Go namespace.
+
+
+%package -n compat-%{oldgoname}-devel
+Summary:    etcd golang devel libraries
+BuildArch:  noarch
+
+%description -n compat-%{oldgoname}-devel
+Golang development libraries for etcd, a highly-available key value store for
+shared configuration.
+
+This package contains compatibility glue for code that still imports the
+%{oldgoipath} Go namespace.
+
 
 %prep
 %setup -q -n man-%{man_version} -T -b 3
 %forgesetup
-%patch0 -p1
-%patch1 -p1
+
+rm -rf vendor
 
 mkdir -p man/man1
 cp ../man-%{man_version}/*.1 man/man1/.
 
-sed -i 's/"gopkg\.in\/cheggaaa\/pb\.v1/"github\.com\/cheggaaa\/pb/g' $(find . -name '*.go')
-#"
 
 %build
 %gobuildroot
 
-%gobuild -o _bin/etcd    %{goipath}/cmd/etcd
-%gobuild -o _bin/etcdctl %{goipath}/cmd/etcdctl
+%gobuild -o _bin/etcd    %{goipath}/etcdmain
+%gobuild -o _bin/etcdctl %{goipath}/etcdctl
+
 
 %install
 install -D -p -m 0755 _bin/%{name} %{buildroot}%{_bindir}/%{name}
@@ -152,26 +148,32 @@ install -d -m 0755 %{buildroot}%{_sharedstatedir}/%{name}
 # source codes for building projects
 %goinstall integration/fixtures etcdserver/api/v2http/testdata
 
+install -m 0755 -vd %{buildroot}%{gopath}/src/%(dirname %{oldgoipath})
+ln -s %{gopath}/src/%{goipath} %{buildroot}%{gopath}/src/%{oldgoipath}
+
+
 %check
 # tools/functional-tester/etcd-agent expects etcd binary at GOPATH/bin/etcd
 %gochecks -d clientv3 -d e2e -d tools/functional-tester/etcd-agent -d integration -d clientv3/integration
 
+
 %pre
 getent group %{name} >/dev/null || groupadd -r %{name}
 getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/%{name} \
-	-s /sbin/nologin -c "etcd user" %{name}
+    -s /sbin/nologin -c "etcd user" %{name}
+
 
 %post
 %systemd_post %{name}.service
 
+
 %preun
 %systemd_preun %{name}.service
+
 
 %postun
 %systemd_postun %{name}.service
 
-#define license tag if not already defined
-%{!?_licensedir:%global license %doc}
 
 %files
 %license LICENSE
@@ -183,12 +185,24 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %{_unitdir}/%{name}.service
 %{_mandir}/man1/*.1*
 
+
 %files devel -f devel.file-list
 %license LICENSE
 %doc *.md
-%doc glide.lock
+
+
+%files -n compat-%{oldgoname}-devel
+%dir %{gopath}/src/%(dirname %{oldgoipath})
+%{gopath}/src/%{oldgoipath}
+
 
 %changelog
+* Thu Mar 14 2019 Robert-André Mauchin <zebob.m@gmail.com> - 3.3.12-1.20190314gite1ca3b4
+- Bump to commit e1ca3b4434945e57e8e3a451cdbde74a903cc8e1
+- Add new goipath
+- Updated patches
+- Updated man pages
+
 * Sun Feb 17 2019 Elliott Sales de Andrade <quantum.analyst@gmail.com> - 3.2.16-6
 - Fix broken version specification
 - Backport variadic parameter fix
@@ -196,8 +210,7 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 * Thu Jan 31 2019 Fedora Release Engineering <releng@fedoraproject.org> - 3.2.16-5
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_30_Mass_Rebuild
 
-* Tue Oct 23 2018 Nicolas Mailhot <nim@fedoraproject.org>
-- 3.2.16-4
+* Tue Oct 23 2018 Nicolas Mailhot <nim@fedoraproject.org> - 3.2.16-4
 - redhat-rpm-config-123 triggers bugs in gosetup, remove it from Go spec files as it’s just an alias
 - https://lists.fedoraproject.org/archives/list/devel@lists.fedoraproject.org/message/RWD5YATAYAFWKIDZBB7EB6N5DAO4ZKFM/
 

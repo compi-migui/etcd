@@ -17,7 +17,7 @@ sed -i s"/^\\\fBetcdctl /\\\fBETCDCTL=3 etcdctl /" etcdctl3*.1
 cd ../etcdctl2
 ../../$1/bin/etcdctl --help > etcdctl.1
 
-for cmd in $(cat etcdctl.1 | grep "\fBetcdctl" | cut -d'-' -f2-3 | cut -d'(' -f1); do ../../$1/bin/etcdctl $cmd --help > etcdctl-$cmd.1; done
+for cmd in $(cat etcdctl.1 | grep "\fBetcdctl\\\-" | cut -d'-' -f2-3 | cut -d'(' -f1); do ../../$1/bin/etcdctl $cmd --help > etcdctl-$cmd.1; done
 
 # rename to etcdctl2
 for line in $(ls *.1); do mv $line $(echo $line | sed "s/etcdctl/etcdctl2/"); done
