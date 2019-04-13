@@ -3,7 +3,7 @@
 %global forgeurl        https://github.com/coreos/etcd
 %global oldgoipath      github.com/coreos/etcd
 %global oldgoname       %gorpmname %{oldgoipath}
-%global commit          e1ca3b4434945e57e8e3a451cdbde74a903cc8e1
+%global commit          f29b1ada19713544b698dab8c94c97cfa1e83dac
 
 %gometa
 
@@ -11,7 +11,7 @@
 
 Name:           etcd
 Version:        3.3.12
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        A highly-available key value store for shared configuration
 License:        ASL 2.0
 URL:            %{gourl}
@@ -197,6 +197,9 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 
 
 %changelog
+* Sat Apr 13 22:31:30 CET 2019 Robert-André Mauchin <zebob.m@gmail.com> - 3.3.12-2.20190413gitf29b1ad
+- Bump to commit f29b1ada19713544b698dab8c94c97cfa1e83dac
+
 * Thu Mar 14 2019 Robert-André Mauchin <zebob.m@gmail.com> - 3.3.12-1.20190314gite1ca3b4
 - Bump to commit e1ca3b4434945e57e8e3a451cdbde74a903cc8e1
 - Add new goipath
