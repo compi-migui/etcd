@@ -11,7 +11,7 @@
 
 Name:           etcd
 Version:        3.3.12
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        A highly-available key value store for shared configuration
 License:        ASL 2.0
 URL:            %{gourl}
@@ -127,7 +127,7 @@ cp ../man-%{man_version}/*.1 man/man1/.
 %build
 %gobuildroot
 
-%gobuild -o _bin/etcd    %{goipath}/etcdmain
+%gobuild -o _bin/etcd    %{goipath}
 %gobuild -o _bin/etcdctl %{goipath}/etcdctl
 
 
@@ -197,6 +197,9 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 
 
 %changelog
+* Mon Apr 15 15:11:24 CET 2019 Robert-André Mauchin <zebob.m@gmail.com> - 3.3.12-3.20190413gitf29b1ad
+- Fix building of etcd
+
 * Sat Apr 13 22:31:30 CET 2019 Robert-André Mauchin <zebob.m@gmail.com> - 3.3.12-2.20190413gitf29b1ad
 - Bump to commit f29b1ada19713544b698dab8c94c97cfa1e83dac
 
