@@ -11,7 +11,7 @@
 
 Name:           etcd
 Version:        3.3.12
-Release:        3%{?dist}
+Release:        4%{?dist}
 Summary:        A highly-available key value store for shared configuration
 License:        ASL 2.0
 URL:            %{gourl}
@@ -197,6 +197,9 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 
 
 %changelog
+* Tue Apr 16 15:51:11 CET 2019 Robert-André Mauchin <zebob.m@gmail.com> - 3.3.12-4.20190413gitf29b1ad
+- etcd.service: do not pass command line flags already defined in environment
+
 * Mon Apr 15 15:11:24 CET 2019 Robert-André Mauchin <zebob.m@gmail.com> - 3.3.12-3.20190413gitf29b1ad
 - Fix building of etcd
 
