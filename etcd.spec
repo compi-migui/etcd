@@ -20,7 +20,7 @@ system.}
                         README.md ROADMAP.md Documentation\\\
                         README-*.md READMEv2-etcdctl.md
 
-%global gosupfiles      integration/fixtures/* etcdserver/api/v2http/testdata/*
+%global gosupfiles      'integration/fixtures/*' 'etcdserver/api/v2http/testdata/*'
 
 Name:           etcd
 Release:        1%{?dist}
