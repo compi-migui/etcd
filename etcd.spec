@@ -20,7 +20,7 @@ system.}
                         README.md ROADMAP.md Documentation\\\
                         README-*.md READMEv2-etcdctl.md
 
-%global gosupfiles      'integration/fixtures/*' 'etcdserver/api/v2http/testdata/*'
+%global gosupfiles      integration/fixtures/* etcdserver/api/v2http/testdata/*
 
 Name:           etcd
 Release:        1%{?dist}
@@ -159,6 +159,7 @@ install -dm 0755 %{buildroot}%{_sharedstatedir}/%{name}
          -d integration \
          -d clientv3/integration \
          -d clientv3/balancer \
+         -d clientv3/ordering \
          -d pkg/flags \
          -d raft
 %endif
