@@ -8,6 +8,11 @@ Version:                3.3.13
 
 %gometa
 
+# Remove in F33
+%global godevelheader %{expand:
+Obsoletes:      etcd-devel < 3.3.12-5
+}
+
 %global goaltipaths     github.com/coreos/etcd
 %global man_version     3.3.13
 
@@ -23,7 +28,7 @@ system.}
 %global gosupfiles      integration/fixtures/* etcdserver/api/v2http/testdata/*
 
 Name:           etcd
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Distributed reliable key-value store for the most critical data of a distributed system
 
 # Upstream license specification: Apache-2.0
@@ -191,6 +196,9 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %gopkgfiles
 
 %changelog
+* Wed Jul 10 2019 Elliott Sales de Andrade <quantum.analyst@gmail.com> - 3.3.13-2
+- Add Obsoletes for old name
+
 * Wed May 08 01:20:48 CEST 2019 Robert-André Mauchin <zebob.m@gmail.com> - 3.3.13-1
 - Release 3.3.13
 
