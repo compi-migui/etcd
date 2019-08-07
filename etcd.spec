@@ -165,7 +165,9 @@ install -dm 0755 %{buildroot}%{_sharedstatedir}/%{name}
          -d clientv3/integration \
          -d clientv3/balancer \
          -d clientv3/ordering \
+         -d pkg/expect \
          -d pkg/flags \
+         -d pkg/transport \
          -d raft
 %endif
 
