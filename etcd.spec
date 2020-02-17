@@ -28,7 +28,7 @@ system.}
 %global gosupfiles      integration/fixtures/* etcdserver/api/v2http/testdata/*
 
 Name:           etcd
-Release:        4%{?dist}
+Release:        5%{?dist}
 Summary:        Distributed reliable key-value store for the most critical data of a distributed system
 
 # Upstream license specification: Apache-2.0
@@ -198,6 +198,9 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %gopkgfiles
 
 %changelog
+* Mon Feb 17 2020 Elliott Sales de Andrade <quantum.analyst@gmail.com> - 3.3.13-5
+- Rebuilt for GHSA-jf24-p9p9-4rjh
+
 * Tue Jan 28 2020 Fedora Release Engineering <releng@fedoraproject.org> - 3.3.13-4
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
 
