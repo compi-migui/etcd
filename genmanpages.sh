@@ -23,7 +23,7 @@ for cmd in $(cat etcdctl.1 | grep "\fBetcdctl\\\-" | cut -d'-' -f2-3 | cut -d'('
 for line in $(ls *.1); do mv $line $(echo $line | sed "s/etcdctl/etcdctl2/"); done
 
 # rename refs
-sed -i "s/\\\fBetcdctl-/\\\fBetcdctl2-/g" *.1
+sed -i "s/\\\fBetcdctl\\\-/\\\fBetcdctl2\\\-/g" *.1
 
 cd ..
 mv etcdctl2/* .

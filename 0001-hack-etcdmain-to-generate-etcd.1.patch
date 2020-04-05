@@ -1,7 +1,7 @@
-diff -up etcd-e1ca3b4434945e57e8e3a451cdbde74a903cc8e1/etcdmain/config.go.hack1 etcd-e1ca3b4434945e57e8e3a451cdbde74a903cc8e1/etcdmain/config.go
---- etcd-e1ca3b4434945e57e8e3a451cdbde74a903cc8e1/etcdmain/config.go.hack1	2019-03-14 20:11:28.569755622 +0100
-+++ etcd-e1ca3b4434945e57e8e3a451cdbde74a903cc8e1/etcdmain/config.go	2019-03-14 20:23:17.601851367 +0100
-@@ -122,14 +122,14 @@ func newConfig() *config {
+diff -up etcd-3.4.3/etcdmain/config.go.orig etcd-3.4.3/etcdmain/config.go
+--- etcd-3.4.3/etcdmain/config.go.orig	2019-10-23 19:11:46.000000000 +0200
++++ etcd-3.4.3/etcdmain/config.go	2020-02-06 01:16:58.443641282 +0100
+@@ -123,14 +123,15 @@ func newConfig() *config {
  		),
  	}
  
@@ -12,14 +12,14 @@ diff -up etcd-e1ca3b4434945e57e8e3a451cdbde74a903cc8e1/etcdmain/config.go.hack1 
  		fmt.Fprintln(os.Stderr, usageline)
  	}
  
- 	fs.StringVar(&cfg.configFile, "config-file", "", "Path to the server configuration file")
+ 	fs.StringVar(&cfg.configFile, "config-file", "", "Path to the server configuration file. Note that if a configuration file is provided, other command line flags and environment variables will be ignored.")
  
--	// member
+ 	// member
 +	fs.AddGroup("member")
  	fs.StringVar(&cfg.ec.Dir, "data-dir", cfg.ec.Dir, "Path to the data directory.")
  	fs.StringVar(&cfg.ec.WalDir, "wal-dir", cfg.ec.WalDir, "Path to the dedicated wal directory.")
  	fs.Var(
-@@ -162,7 +162,7 @@ func newConfig() *config {
+@@ -163,7 +164,7 @@ func newConfig() *config {
  	fs.DurationVar(&cfg.ec.GRPCKeepAliveInterval, "grpc-keepalive-interval", cfg.ec.GRPCKeepAliveInterval, "Frequency duration of server-to-client ping to check if a connection is alive (0 to disable).")
  	fs.DurationVar(&cfg.ec.GRPCKeepAliveTimeout, "grpc-keepalive-timeout", cfg.ec.GRPCKeepAliveTimeout, "Additional duration of wait before closing a non-responsive connection (0 to disable).")
  
@@ -28,7 +28,7 @@ diff -up etcd-e1ca3b4434945e57e8e3a451cdbde74a903cc8e1/etcdmain/config.go.hack1 
  	fs.Var(
  		flags.NewUniqueURLsWithExceptions(embed.DefaultInitialAdvertisePeerURLs, ""),
  		"initial-advertise-peer-urls",
-@@ -187,7 +187,7 @@ func newConfig() *config {
+@@ -188,7 +189,7 @@ func newConfig() *config {
  	fs.BoolVar(&cfg.ec.EnableV2, "enable-v2", cfg.ec.EnableV2, "Accept etcd V2 client requests.")
  	fs.BoolVar(&cfg.ec.PreVote, "pre-vote", cfg.ec.PreVote, "Enable to run an additional Raft election phase.")
  
@@ -37,7 +37,7 @@ diff -up etcd-e1ca3b4434945e57e8e3a451cdbde74a903cc8e1/etcdmain/config.go.hack1 
  	fs.Var(cfg.cf.proxy, "proxy", fmt.Sprintf("Valid values include %q", cfg.cf.proxy.Valids()))
  	fs.UintVar(&cfg.cp.ProxyFailureWaitMs, "proxy-failure-wait", cfg.cp.ProxyFailureWaitMs, "Time (in milliseconds) an endpoint will be held in a failed state.")
  	fs.UintVar(&cfg.cp.ProxyRefreshIntervalMs, "proxy-refresh-interval", cfg.cp.ProxyRefreshIntervalMs, "Time (in milliseconds) of the endpoints refresh interval.")
-@@ -195,7 +195,7 @@ func newConfig() *config {
+@@ -196,7 +197,7 @@ func newConfig() *config {
  	fs.UintVar(&cfg.cp.ProxyWriteTimeoutMs, "proxy-write-timeout", cfg.cp.ProxyWriteTimeoutMs, "Time (in milliseconds) for a write to timeout.")
  	fs.UintVar(&cfg.cp.ProxyReadTimeoutMs, "proxy-read-timeout", cfg.cp.ProxyReadTimeoutMs, "Time (in milliseconds) for a read to timeout.")
  
@@ -46,17 +46,18 @@ diff -up etcd-e1ca3b4434945e57e8e3a451cdbde74a903cc8e1/etcdmain/config.go.hack1 
  	fs.StringVar(&cfg.ec.ClientTLSInfo.CertFile, "cert-file", "", "Path to the client server TLS cert file.")
  	fs.StringVar(&cfg.ec.ClientTLSInfo.KeyFile, "key-file", "", "Path to the client server TLS key file.")
  	fs.BoolVar(&cfg.ec.ClientTLSInfo.ClientCertAuth, "client-cert-auth", false, "Enable client cert authentication.")
-@@ -218,41 +218,44 @@ func newConfig() *config {
+@@ -222,7 +223,7 @@ func newConfig() *config {
  	)
  	fs.Var(flags.NewUniqueStringsValue("*"), "host-whitelist", "Comma-separated acceptable hostnames from HTTP client requests, if server is not secure (empty means allow all).")
  
 -	// logging
 +	fs.AddGroup("logging")
- 	fs.StringVar(&cfg.ec.Logger, "logger", "capnslog", "Specify 'zap' for structured logging or 'capnslog'.")
- 	fs.Var(flags.NewUniqueStringsValue(embed.DefaultLogOutput), "log-output", "DEPRECATED: use '--log-outputs'.")
+ 	fs.StringVar(&cfg.ec.Logger, "logger", "capnslog", "Specify 'zap' for structured logging or 'capnslog'. WARN: 'capnslog' is being deprecated in v3.5.")
+ 	fs.Var(flags.NewUniqueStringsValue(embed.DefaultLogOutput), "log-output", "[TO BE DEPRECATED IN v3.5] use '--log-outputs'.")
  	fs.Var(flags.NewUniqueStringsValue(embed.DefaultLogOutput), "log-outputs", "Specify 'stdout' or 'stderr' to skip journald logging even when running under systemd, or list of comma separated output targets.")
- 	fs.BoolVar(&cfg.ec.Debug, "debug", false, "Enable debug-level logging for etcd.")
- 	fs.StringVar(&cfg.ec.LogPkgLevels, "log-package-levels", "", "(To be deprecated) Specify a particular log level for each etcd package (eg: 'etcdmain=CRITICAL,etcdserver=DEBUG').")
+@@ -230,26 +231,26 @@ func newConfig() *config {
+ 	fs.StringVar(&cfg.ec.LogLevel, "log-level", logutil.DefaultLogLevel, "Configures log level. Only supports debug, info, warn, error, panic, or fatal. Default 'info'.")
+ 	fs.StringVar(&cfg.ec.LogPkgLevels, "log-package-levels", "", "[TO BE DEPRECATED IN v3.5] Specify a particular log level for each etcd package (eg: 'etcdmain=CRITICAL,etcdserver=DEBUG').")
  
 -	// version
 +	fs.AddGroup("version")
@@ -86,7 +87,9 @@ diff -up etcd-e1ca3b4434945e57e8e3a451cdbde74a903cc8e1/etcdmain/config.go.hack1 
  	fs.BoolVar(&cfg.ec.ExperimentalInitialCorruptCheck, "experimental-initial-corrupt-check", cfg.ec.ExperimentalInitialCorruptCheck, "Enable to check data corruption before serving any client/peer traffic.")
  	fs.DurationVar(&cfg.ec.ExperimentalCorruptCheckTime, "experimental-corrupt-check-time", cfg.ec.ExperimentalCorruptCheckTime, "Duration of time between cluster corruption check passes.")
  	fs.StringVar(&cfg.ec.ExperimentalEnableV2V3, "experimental-enable-v2v3", cfg.ec.ExperimentalEnableV2V3, "v3 prefix for serving emulated v2 state.")
- 	fs.StringVar(&cfg.ec.ExperimentalBackendFreelistType, "experimental-backend-bbolt-freelist-type", cfg.ec.ExperimentalBackendFreelistType, "ExperimentalBackendFreelistType specifies the type of freelist that boltdb backend uses(array and map are supported types)")
+@@ -257,9 +258,12 @@ func newConfig() *config {
+ 	fs.BoolVar(&cfg.ec.ExperimentalEnableLeaseCheckpoint, "experimental-enable-lease-checkpoint", false, "Enable to persist lease remaining TTL to prevent indefinite auto-renewal of long lived leases.")
+ 	fs.IntVar(&cfg.ec.ExperimentalCompactionBatchLimit, "experimental-compaction-batch-limit", cfg.ec.ExperimentalCompactionBatchLimit, "Sets the maximum revisions deleted in each compaction batch.")
  
 -	// unsafe
 +	fs.AddGroup("unsafe")
@@ -94,13 +97,13 @@ diff -up etcd-e1ca3b4434945e57e8e3a451cdbde74a903cc8e1/etcdmain/config.go.hack1 
  
 +	fs.GenMan()
 +	os.Exit(0)
-+    
++
  	// ignored
  	for _, f := range cfg.ignored {
  		fs.Var(&flags.IgnoredFlag{Name: f}, f, "")
-diff -up etcd-e1ca3b4434945e57e8e3a451cdbde74a903cc8e1/etcdmain/fake_flagset.go.hack1 etcd-e1ca3b4434945e57e8e3a451cdbde74a903cc8e1/etcdmain/fake_flagset.go
---- etcd-e1ca3b4434945e57e8e3a451cdbde74a903cc8e1/etcdmain/fake_flagset.go.hack1	2019-03-14 20:11:28.570755620 +0100
-+++ etcd-e1ca3b4434945e57e8e3a451cdbde74a903cc8e1/etcdmain/fake_flagset.go	2019-03-14 20:11:28.570755620 +0100
+diff -up etcd-3.4.3/etcdmain/fake_flagset.go.orig etcd-3.4.3/etcdmain/fake_flagset.go
+--- etcd-3.4.3/etcdmain/fake_flagset.go.orig	2020-02-06 01:14:12.639989665 +0100
++++ etcd-3.4.3/etcdmain/fake_flagset.go	2020-02-06 01:14:12.639989665 +0100
 @@ -0,0 +1,157 @@
 +package etcdmain
 +

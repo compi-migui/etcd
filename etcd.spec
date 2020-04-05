@@ -4,7 +4,7 @@
 # https://github.com/etcd-io/etcd
 %global goipath         go.etcd.io/etcd
 %global forgeurl        https://github.com/etcd-io/etcd
-Version:                3.3.13
+Version:                3.4.7
 
 %gometa
 
@@ -14,21 +14,20 @@ Obsoletes:      etcd-devel < 3.3.12-5
 }
 
 %global goaltipaths     github.com/coreos/etcd
-%global man_version     3.3.13
+%global man_version     3.4.7
 
 %global common_description %{expand:
 Distributed reliable key-value store for the most critical data of a distributed
 system.}
 
 %global golicenses      LICENSE NOTICE
-%global godocs          CHANGELOG.md CODE_OF_CONDUCT.md CONTRIBUTING.md\\\
-                        README.md ROADMAP.md Documentation\\\
+%global godocs          CONTRIBUTING.md README.md Documentation\\\
                         README-*.md READMEv2-etcdctl.md
 
 %global gosupfiles      integration/fixtures/* etcdserver/api/v2http/testdata/*
 
 Name:           etcd
-Release:        5%{?dist}
+Release:        1%{?dist}
 Summary:        Distributed reliable key-value store for the most critical data of a distributed system
 
 # Upstream license specification: Apache-2.0
@@ -43,31 +42,30 @@ Source10:       genmanpages.sh
 # Not patches to apply here, but used on the source to generate man pages
 Source11:       0001-hack-etcdmain-to-generate-etcd.1.patch
 Source12:       0001-hack-to-generate-man-pages.patch
-# Needed to use newer gRPC
-# https://github.com/etcd-io/etcd/commit/520bd5084e3120e0eb45963446e798b1f3211d2f
-Patch0:         https://github.com/etcd-io/etcd/commit/520bd5084e3120e0eb45963446e798b1f3211d2f.patch#/0001-Eliminate-direct-use-of-gRPC-transport-pkg.patch
+# Fix a test
+Patch0:         https://github.com/etcd-io/etcd/commit/2c95b49b63651ae3e0a3f63c45c05295d1af2c42.patch#/0001-remove-unknown-field-Etcd.Debug.patch
 
 BuildRequires:  golang(github.com/bgentry/speakeasy)
-BuildRequires:  golang(github.com/coreos/bbolt)
+# BuildRequires:  golang(github.com/cockroachdb/datadriven)
 BuildRequires:  golang(github.com/coreos/go-semver/semver)
 BuildRequires:  golang(github.com/coreos/go-systemd/daemon)
-BuildRequires:  golang(github.com/coreos/go-systemd/util)
+BuildRequires:  golang(github.com/coreos/go-systemd/journal)
 BuildRequires:  golang(github.com/coreos/pkg/capnslog)
+BuildRequires:  golang(github.com/creack/pty)
 BuildRequires:  golang(github.com/dgrijalva/jwt-go)
 BuildRequires:  golang(github.com/dustin/go-humanize)
-BuildRequires:  golang(github.com/ghodss/yaml)
 BuildRequires:  golang(github.com/gogo/protobuf/gogoproto)
 BuildRequires:  golang(github.com/gogo/protobuf/proto)
 BuildRequires:  golang(github.com/golang/groupcache/lru)
 BuildRequires:  golang(github.com/golang/protobuf/proto)
 BuildRequires:  golang(github.com/google/btree)
+BuildRequires:  golang(github.com/google/uuid)
 BuildRequires:  golang(github.com/grpc-ecosystem/go-grpc-middleware)
 BuildRequires:  golang(github.com/grpc-ecosystem/go-grpc-prometheus)
 BuildRequires:  golang(github.com/grpc-ecosystem/grpc-gateway/runtime)
 BuildRequires:  golang(github.com/grpc-ecosystem/grpc-gateway/utilities)
 BuildRequires:  golang(github.com/jonboulle/clockwork)
 BuildRequires:  golang(github.com/json-iterator/go)
-BuildRequires:  golang(github.com/kr/pty)
 BuildRequires:  golang(github.com/modern-go/reflect2)
 BuildRequires:  golang(github.com/olekukonko/tablewriter)
 BuildRequires:  golang(github.com/prometheus/client_golang/prometheus)
@@ -78,14 +76,18 @@ BuildRequires:  golang(github.com/spf13/pflag)
 BuildRequires:  golang(github.com/tmc/grpc-websocket-proxy/wsproxy)
 BuildRequires:  golang(github.com/urfave/cli)
 BuildRequires:  golang(github.com/xiang90/probing)
+BuildRequires:  golang(go.etcd.io/bbolt)
 BuildRequires:  golang(go.uber.org/zap)
+BuildRequires:  golang(go.uber.org/zap/zapcore)
 BuildRequires:  golang(golang.org/x/crypto/bcrypt)
 BuildRequires:  golang(golang.org/x/net/context)
 BuildRequires:  golang(golang.org/x/net/http2)
 BuildRequires:  golang(golang.org/x/net/trace)
 BuildRequires:  golang(golang.org/x/time/rate)
 BuildRequires:  golang(google.golang.org/grpc)
+BuildRequires:  golang(google.golang.org/grpc/balancer)
 BuildRequires:  golang(google.golang.org/grpc/codes)
+BuildRequires:  golang(google.golang.org/grpc/connectivity)
 BuildRequires:  golang(google.golang.org/grpc/credentials)
 BuildRequires:  golang(google.golang.org/grpc/grpclog)
 BuildRequires:  golang(google.golang.org/grpc/health)
@@ -94,12 +96,16 @@ BuildRequires:  golang(google.golang.org/grpc/keepalive)
 BuildRequires:  golang(google.golang.org/grpc/metadata)
 BuildRequires:  golang(google.golang.org/grpc/naming)
 BuildRequires:  golang(google.golang.org/grpc/peer)
+BuildRequires:  golang(google.golang.org/grpc/resolver)
+BuildRequires:  golang(google.golang.org/grpc/resolver/dns)
+BuildRequires:  golang(google.golang.org/grpc/resolver/passthrough)
 BuildRequires:  golang(google.golang.org/grpc/status)
 BuildRequires:  golang(gopkg.in/cheggaaa/pb.v1)
 BuildRequires:  golang(gopkg.in/yaml.v2)
-# in 3.4
-# BuildRequires:  python3-devel
-# BuildRequires:  %%{py3_dist sphinx sphinx-autobuild sphinx-rtd-theme}
+BuildRequires:  golang(sigs.k8s.io/yaml)
+
+BuildRequires:  python3-devel
+# BuildRequires:  %%{py3_dist sphinx sphinx-rtd-theme}
 %{?systemd_requires}
 BuildRequires:  systemd
 Requires(pre):  shadow-utils
@@ -119,7 +125,11 @@ BuildRequires:  golang(github.com/prometheus/client_model/go)
 %goprep
 %patch0 -p1
 rm -rf cmd/vendor
-find . -name "*.go" -exec sed -i "s|github.com/coreos/etcd|go.etcd.io/etcd|" "{}" +;
+rm -rf raft/rafttest
+# For compatibility
+cp -aR etcdserver/api/snap snap
+cp -aR etcdserver/api/membership etcdserver/membership
+cp -aR etcdserver/api/v2store store
 
 for d in client clientv3 contrib etcdctl functional hack; do
 mv $d/README.md README-$d.md
@@ -135,7 +145,6 @@ for cmd in etcdctl; do
   %gobuild -o %{gobuilddir}/bin/$(basename $cmd) %{goipath}/$cmd
 done
 
-# in 3.4
 # make -C docs help
 # make -C docs html
 
@@ -160,15 +169,19 @@ install -dm 0755 %{buildroot}%{_sharedstatedir}/%{name}
 %gocheck -d clientv3 \
          -d e2e \
          -d functional/rpcpb \
+         -d functional/tester \
          -d tools/functional-tester/etcd-agent \
          -d integration \
          -d clientv3/integration \
          -d clientv3/balancer \
+         -d clientv3/snapshot \
          -d clientv3/ordering \
          -d pkg/expect \
          -d pkg/flags \
+         -d pkg/tlsutil \
          -d pkg/transport \
-         -d raft
+         -t raft \
+         -t tests/e2e
 %endif
 
 %pre
@@ -187,7 +200,7 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 
 %files
 %license LICENSE NOTICE
-%doc CHANGELOG.md CODE_OF_CONDUCT.md CONTRIBUTING.md README.md ROADMAP.md
+%doc CONTRIBUTING.md README.md
 %doc Documentation README-*.md READMEv2-etcdctl.md
 %{_bindir}/*
 %config(noreplace) %{_sysconfdir}/%{name}
@@ -198,6 +211,9 @@ getent passwd %{name} >/dev/null || useradd -r -g %{name} -d %{_sharedstatedir}/
 %gopkgfiles
 
 %changelog
+* Sun Apr 05 15:36:23 CEST 2020 Robert-André Mauchin <zebob.m@gmail.com> - 3.4.7-1
+- Update to 3.4.7
+
 * Mon Feb 17 2020 Elliott Sales de Andrade <quantum.analyst@gmail.com> - 3.3.13-5
 - Rebuilt for GHSA-jf24-p9p9-4rjh
 
