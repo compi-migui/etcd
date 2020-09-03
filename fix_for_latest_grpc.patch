@@ -1,0 +1,424 @@
+diff -up etcd-3.4.10/clientv3/balancer/balancer.go.orig2 etcd-3.4.10/clientv3/balancer/balancer.go
+--- etcd-3.4.10/clientv3/balancer/balancer.go.orig2	2020-07-17 00:16:20.000000000 +0200
++++ etcd-3.4.10/clientv3/balancer/balancer.go	2020-08-10 14:38:46.792286145 +0200
+@@ -138,13 +138,10 @@ type baseBalancer struct {
+ 	picker picker.Picker
+ }
+ 
+-// HandleResolvedAddrs implements "grpc/balancer.Balancer" interface.
++// UpdateClientConnState implements "grpc/balancer.Balancer" interface.
+ // gRPC sends initial or updated resolved addresses from "Build".
+-func (bb *baseBalancer) HandleResolvedAddrs(addrs []resolver.Address, err error) {
+-	if err != nil {
+-		bb.lg.Warn("HandleResolvedAddrs called with error", zap.String("balancer-id", bb.id), zap.Error(err))
+-		return
+-	}
++func (bb *baseBalancer) UpdateClientConnState(state balancer.ClientConnState) error {
++	addrs := state.ResolverState.Addresses
+ 	bb.lg.Info("resolved",
+ 		zap.String("picker", bb.picker.String()),
+ 		zap.String("balancer-id", bb.id),
+@@ -191,10 +188,20 @@ func (bb *baseBalancer) HandleResolvedAd
+ 			// (DO NOT) delete(bb.scToSt, sc)
+ 		}
+ 	}
++
++	return nil
+ }
+ 
+-// HandleSubConnStateChange implements "grpc/balancer.Balancer" interface.
+-func (bb *baseBalancer) HandleSubConnStateChange(sc balancer.SubConn, s grpcconnectivity.State) {
++// ResolverError implements "grpc/balancer.Balancer" interface.
++// It's called by gRPC when the name resolver reports an error.
++func (bb *baseBalancer) ResolverError(err error) {
++	bb.lg.Warn("ResolverError called with error", zap.String("balancer-id", bb.id), zap.Error(err))
++}
++
++// UpdateSubConnState implements "grpc/balancer.Balancer" interface.
++func (bb *baseBalancer) UpdateSubConnState(sc balancer.SubConn, state balancer.SubConnState) {
++	s := state.ConnectivityState
++
+ 	bb.mu.Lock()
+ 	defer bb.mu.Unlock()
+ 
+@@ -247,7 +254,10 @@ func (bb *baseBalancer) HandleSubConnSta
+ 		bb.updatePicker()
+ 	}
+ 
+-	bb.currentConn.UpdateBalancerState(bb.connectivityRecorder.GetCurrentState(), bb.picker)
++	bb.currentConn.UpdateState(balancer.State{
++		ConnectivityState: bb.connectivityRecorder.GetCurrentState(),
++		Picker:            bb.picker,
++	})
+ }
+ 
+ func (bb *baseBalancer) updatePicker() {
+diff -up etcd-3.4.10/clientv3/balancer/picker/err.go.orig2 etcd-3.4.10/clientv3/balancer/picker/err.go
+--- etcd-3.4.10/clientv3/balancer/picker/err.go.orig2	2020-07-17 00:16:20.000000000 +0200
++++ etcd-3.4.10/clientv3/balancer/picker/err.go	2020-08-10 14:38:46.793286144 +0200
+@@ -15,8 +15,6 @@
+ package picker
+ 
+ import (
+-	"context"
+-
+ 	"google.golang.org/grpc/balancer"
+ )
+ 
+@@ -34,6 +32,6 @@ func (ep *errPicker) String() string {
+ 	return ep.p.String()
+ }
+ 
+-func (ep *errPicker) Pick(context.Context, balancer.PickInfo) (balancer.SubConn, func(balancer.DoneInfo), error) {
+-	return nil, nil, ep.err
++func (ep *errPicker) Pick(_ balancer.PickInfo) (balancer.PickResult, error) {
++	return balancer.PickResult{}, ep.err
+ }
+diff -up etcd-3.4.10/clientv3/balancer/picker/roundrobin_balanced.go.orig2 etcd-3.4.10/clientv3/balancer/picker/roundrobin_balanced.go
+--- etcd-3.4.10/clientv3/balancer/picker/roundrobin_balanced.go.orig2	2020-07-17 00:16:20.000000000 +0200
++++ etcd-3.4.10/clientv3/balancer/picker/roundrobin_balanced.go	2020-08-10 14:38:46.793286144 +0200
+@@ -15,7 +15,6 @@
+ package picker
+ 
+ import (
+-	"context"
+ 	"sync"
+ 
+ 	"go.uber.org/zap"
+@@ -52,12 +51,12 @@ type rrBalanced struct {
+ func (rb *rrBalanced) String() string { return rb.p.String() }
+ 
+ // Pick is called for every client request.
+-func (rb *rrBalanced) Pick(ctx context.Context, opts balancer.PickInfo) (balancer.SubConn, func(balancer.DoneInfo), error) {
++func (rb *rrBalanced) Pick(_ balancer.PickInfo) (balancer.PickResult, error) {
+ 	rb.mu.RLock()
+ 	n := len(rb.scs)
+ 	rb.mu.RUnlock()
+ 	if n == 0 {
+-		return nil, nil, balancer.ErrNoSubConnAvailable
++		return balancer.PickResult{}, balancer.ErrNoSubConnAvailable
+ 	}
+ 
+ 	rb.mu.Lock()
+@@ -91,5 +90,9 @@ func (rb *rrBalanced) Pick(ctx context.C
+ 			rb.lg.Warn("balancer failed", fss...)
+ 		}
+ 	}
+-	return sc, doneFunc, nil
++
++	return balancer.PickResult{
++		SubConn: sc,
++		Done:    doneFunc,
++	}, nil
+ }
+diff -up etcd-3.4.10/clientv3/naming/grpc.go.orig2 etcd-3.4.10/clientv3/naming/grpc.go
+--- etcd-3.4.10/clientv3/naming/grpc.go.orig2	2020-07-17 00:16:20.000000000 +0200
++++ etcd-3.4.10/clientv3/naming/grpc.go	2020-08-10 14:40:02.425235180 +0200
+@@ -19,11 +19,10 @@ import (
+ 	"encoding/json"
+ 	"fmt"
+ 
+-	etcd "go.etcd.io/etcd/clientv3"
+-
+ 	"google.golang.org/grpc/codes"
+-	"google.golang.org/grpc/naming"
+ 	"google.golang.org/grpc/status"
++    
++	etcd "go.etcd.io/etcd/clientv3"
+ )
+ 
+ var ErrWatcherClosed = fmt.Errorf("naming: watch closed")
+@@ -34,15 +33,15 @@ type GRPCResolver struct {
+ 	Client *etcd.Client
+ }
+ 
+-func (gr *GRPCResolver) Update(ctx context.Context, target string, nm naming.Update, opts ...etcd.OpOption) (err error) {
++func (gr *GRPCResolver) Update(ctx context.Context, target string, nm Update, opts ...etcd.OpOption) (err error) {
+ 	switch nm.Op {
+-	case naming.Add:
++	case Add:
+ 		var v []byte
+ 		if v, err = json.Marshal(nm); err != nil {
+ 			return status.Error(codes.InvalidArgument, err.Error())
+ 		}
+ 		_, err = gr.Client.KV.Put(ctx, target+"/"+nm.Addr, string(v), opts...)
+-	case naming.Delete:
++	case Delete:
+ 		_, err = gr.Client.Delete(ctx, target+"/"+nm.Addr, opts...)
+ 	default:
+ 		return status.Error(codes.InvalidArgument, "naming: bad naming op")
+@@ -50,7 +49,7 @@ func (gr *GRPCResolver) Update(ctx conte
+ 	return err
+ }
+ 
+-func (gr *GRPCResolver) Resolve(target string) (naming.Watcher, error) {
++func (gr *GRPCResolver) Resolve(target string) (Watcher, error) {
+ 	ctx, cancel := context.WithCancel(context.Background())
+ 	w := &gRPCWatcher{c: gr.Client, target: target + "/", ctx: ctx, cancel: cancel}
+ 	return w, nil
+@@ -68,7 +67,7 @@ type gRPCWatcher struct {
+ // Next gets the next set of updates from the etcd resolver.
+ // Calls to Next should be serialized; concurrent calls are not safe since
+ // there is no way to reconcile the update ordering.
+-func (gw *gRPCWatcher) Next() ([]*naming.Update, error) {
++func (gw *gRPCWatcher) Next() ([]*Update, error) {
+ 	if gw.wch == nil {
+ 		// first Next() returns all addresses
+ 		return gw.firstNext()
+@@ -87,17 +86,17 @@ func (gw *gRPCWatcher) Next() ([]*naming
+ 		return nil, gw.err
+ 	}
+ 
+-	updates := make([]*naming.Update, 0, len(wr.Events))
++	updates := make([]*Update, 0, len(wr.Events))
+ 	for _, e := range wr.Events {
+-		var jupdate naming.Update
++		var jupdate Update
+ 		var err error
+ 		switch e.Type {
+ 		case etcd.EventTypePut:
+ 			err = json.Unmarshal(e.Kv.Value, &jupdate)
+-			jupdate.Op = naming.Add
++			jupdate.Op = Add
+ 		case etcd.EventTypeDelete:
+ 			err = json.Unmarshal(e.PrevKv.Value, &jupdate)
+-			jupdate.Op = naming.Delete
++			jupdate.Op = Delete
+ 		default:
+ 			continue
+ 		}
+@@ -108,7 +107,7 @@ func (gw *gRPCWatcher) Next() ([]*naming
+ 	return updates, nil
+ }
+ 
+-func (gw *gRPCWatcher) firstNext() ([]*naming.Update, error) {
++func (gw *gRPCWatcher) firstNext() ([]*Update, error) {
+ 	// Use serialized request so resolution still works if the target etcd
+ 	// server is partitioned away from the quorum.
+ 	resp, err := gw.c.Get(gw.ctx, gw.target, etcd.WithPrefix(), etcd.WithSerializable())
+@@ -116,9 +115,9 @@ func (gw *gRPCWatcher) firstNext() ([]*n
+ 		return nil, err
+ 	}
+ 
+-	updates := make([]*naming.Update, 0, len(resp.Kvs))
++	updates := make([]*Update, 0, len(resp.Kvs))
+ 	for _, kv := range resp.Kvs {
+-		var jupdate naming.Update
++		var jupdate Update
+ 		if err := json.Unmarshal(kv.Value, &jupdate); err != nil {
+ 			continue
+ 		}
+diff -up etcd-3.4.10/clientv3/naming/grpc_test.go.orig2 etcd-3.4.10/clientv3/naming/grpc_test.go
+--- etcd-3.4.10/clientv3/naming/grpc_test.go.orig2	2020-07-17 00:16:20.000000000 +0200
++++ etcd-3.4.10/clientv3/naming/grpc_test.go	2020-08-10 14:40:17.258223394 +0200
+@@ -23,8 +23,6 @@ import (
+ 	etcd "go.etcd.io/etcd/clientv3"
+ 	"go.etcd.io/etcd/integration"
+ 	"go.etcd.io/etcd/pkg/testutil"
+-
+-	"google.golang.org/grpc/naming"
+ )
+ 
+ func TestGRPCResolver(t *testing.T) {
+@@ -43,7 +41,7 @@ func TestGRPCResolver(t *testing.T) {
+ 	}
+ 	defer w.Close()
+ 
+-	addOp := naming.Update{Op: naming.Add, Addr: "127.0.0.1", Metadata: "metadata"}
++	addOp := Update{Op: Add, Addr: "127.0.0.1", Metadata: "metadata"}
+ 	err = r.Update(context.TODO(), "foo", addOp)
+ 	if err != nil {
+ 		t.Fatal("failed to add foo", err)
+@@ -54,8 +52,8 @@ func TestGRPCResolver(t *testing.T) {
+ 		t.Fatal("failed to get udpate", err)
+ 	}
+ 
+-	wu := &naming.Update{
+-		Op:       naming.Add,
++	wu := &Update{
++		Op:       Add,
+ 		Addr:     "127.0.0.1",
+ 		Metadata: "metadata",
+ 	}
+@@ -64,7 +62,7 @@ func TestGRPCResolver(t *testing.T) {
+ 		t.Fatalf("up = %#v, want %#v", us[0], wu)
+ 	}
+ 
+-	delOp := naming.Update{Op: naming.Delete, Addr: "127.0.0.1"}
++	delOp := Update{Op: Delete, Addr: "127.0.0.1"}
+ 	err = r.Update(context.TODO(), "foo", delOp)
+ 	if err != nil {
+ 		t.Fatalf("failed to udpate %v", err)
+@@ -75,8 +73,8 @@ func TestGRPCResolver(t *testing.T) {
+ 		t.Fatalf("failed to get udpate %v", err)
+ 	}
+ 
+-	wu = &naming.Update{
+-		Op:       naming.Delete,
++	wu = &Update{
++		Op:       Delete,
+ 		Addr:     "127.0.0.1",
+ 		Metadata: "metadata",
+ 	}
+@@ -96,7 +94,7 @@ func TestGRPCResolverMulti(t *testing.T)
+ 	defer clus.Terminate(t)
+ 	c := clus.RandClient()
+ 
+-	v, verr := json.Marshal(naming.Update{Addr: "127.0.0.1", Metadata: "md"})
++	v, verr := json.Marshal(Update{Addr: "127.0.0.1", Metadata: "md"})
+ 	if verr != nil {
+ 		t.Fatal(verr)
+ 	}
+@@ -132,7 +130,7 @@ func TestGRPCResolverMulti(t *testing.T)
+ 	if nerr != nil {
+ 		t.Fatal(nerr)
+ 	}
+-	if len(updates) != 2 || (updates[0].Op != naming.Delete && updates[1].Op != naming.Delete) {
++	if len(updates) != 2 || (updates[0].Op != Delete && updates[1].Op != Delete) {
+ 		t.Fatalf("expected two updates, got %+v", updates)
+ 	}
+ }
+diff -up etcd-3.4.10/clientv3/naming/naming.go.orig2 etcd-3.4.10/clientv3/naming/naming.go
+--- etcd-3.4.10/clientv3/naming/naming.go.orig2	2020-08-10 14:38:46.805286136 +0200
++++ etcd-3.4.10/clientv3/naming/naming.go	2020-08-10 14:38:46.798286141 +0200
+@@ -0,0 +1,48 @@
++// Copyright 2020 The etcd and gRPC Authors
++//
++// Licensed under the Apache License, Version 2.0 (the "License");
++// you may not use this file except in compliance with the License.
++// You may obtain a copy of the License at
++//
++//     http://www.apache.org/licenses/LICENSE-2.0
++//
++// Unless required by applicable law or agreed to in writing, software
++// distributed under the License is distributed on an "AS IS" BASIS,
++// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++// See the License for the specific language governing permissions and
++// limitations under the License.
++
++// Package naming defines the naming API and related data structures for gRPC.
++package naming
++
++// Operation defines the corresponding operations for a name resolution change.
++type Operation uint8
++
++const (
++	// Add indicates a new address is added.
++	Add Operation = iota
++	// Delete indicates an existing address is deleted.
++	Delete
++)
++
++// Update defines a name resolution update. Notice that it is not valid having both
++// empty string Addr and nil Metadata in an Update.
++type Update struct {
++	// Op indicates the operation of the update.
++	Op Operation
++	// Addr is the updated address. It is empty string if there is no address update.
++	Addr string
++	// Metadata is the updated metadata. It is nil if there is no metadata update.
++	// Metadata is not required for a custom naming implementation.
++	Metadata interface{}
++}
++
++// Watcher watches for the updates on the specified target.
++type Watcher interface {
++	// Next blocks until an update or error happens. It may return one or more
++	// updates. The first call should get the full set of the results. It should
++	// return an error if and only if Watcher cannot recover.
++	Next() ([]*Update, error)
++	// Close closes the Watcher.
++	Close()
++}
+diff -up etcd-3.4.10/proxy/grpcproxy/cluster.go.orig2 etcd-3.4.10/proxy/grpcproxy/cluster.go
+--- etcd-3.4.10/proxy/grpcproxy/cluster.go.orig2	2020-07-17 00:16:20.000000000 +0200
++++ etcd-3.4.10/proxy/grpcproxy/cluster.go	2020-08-10 14:38:46.802286138 +0200
+@@ -27,7 +27,6 @@ import (
+ 	pb "go.etcd.io/etcd/etcdserver/etcdserverpb"
+ 
+ 	"golang.org/x/time/rate"
+-	gnaming "google.golang.org/grpc/naming"
+ )
+ 
+ // allow maximum 1 retry per second
+@@ -43,7 +42,7 @@ type clusterProxy struct {
+ 	prefix  string
+ 
+ 	umu  sync.RWMutex
+-	umap map[string]gnaming.Update
++	umap map[string]naming.Update
+ }
+ 
+ // NewClusterProxy takes optional prefix to fetch grpc-proxy member endpoints.
+@@ -57,7 +56,7 @@ func NewClusterProxy(c *clientv3.Client,
+ 
+ 		advaddr: advaddr,
+ 		prefix:  prefix,
+-		umap:    make(map[string]gnaming.Update),
++		umap:    make(map[string]naming.Update),
+ 	}
+ 
+ 	donec := make(chan struct{})
+@@ -85,7 +84,7 @@ func (cp *clusterProxy) resolve(prefix s
+ 	}
+ }
+ 
+-func (cp *clusterProxy) monitor(wa gnaming.Watcher) {
++func (cp *clusterProxy) monitor(wa naming.Watcher) {
+ 	for cp.ctx.Err() == nil {
+ 		ups, err := wa.Next()
+ 		if err != nil {
+@@ -98,9 +97,9 @@ func (cp *clusterProxy) monitor(wa gnami
+ 		cp.umu.Lock()
+ 		for i := range ups {
+ 			switch ups[i].Op {
+-			case gnaming.Add:
++			case naming.Add:
+ 				cp.umap[ups[i].Addr] = *ups[i]
+-			case gnaming.Delete:
++			case naming.Delete:
+ 				delete(cp.umap, ups[i].Addr)
+ 			}
+ 		}
+diff -up etcd-3.4.10/proxy/grpcproxy/register.go.orig2 etcd-3.4.10/proxy/grpcproxy/register.go
+--- etcd-3.4.10/proxy/grpcproxy/register.go.orig2	2020-07-17 00:16:20.000000000 +0200
++++ etcd-3.4.10/proxy/grpcproxy/register.go	2020-08-10 14:38:46.804286137 +0200
+@@ -23,7 +23,6 @@ import (
+ 	"go.etcd.io/etcd/clientv3/naming"
+ 
+ 	"golang.org/x/time/rate"
+-	gnaming "google.golang.org/grpc/naming"
+ )
+ 
+ // allow maximum 1 retry per second
+@@ -68,7 +67,7 @@ func registerSession(c *clientv3.Client,
+ 	}
+ 
+ 	gr := &naming.GRPCResolver{Client: c}
+-	if err = gr.Update(c.Ctx(), prefix, gnaming.Update{Op: gnaming.Add, Addr: addr, Metadata: getMeta()}, clientv3.WithLease(ss.Lease())); err != nil {
++	if err = gr.Update(c.Ctx(), prefix, naming.Update{Op: naming.Add, Addr: addr, Metadata: getMeta()}, clientv3.WithLease(ss.Lease())); err != nil {
+ 		return nil, err
+ 	}
+ 
+diff -up etcd-3.4.10/proxy/grpcproxy/register_test.go.orig2 etcd-3.4.10/proxy/grpcproxy/register_test.go
+--- etcd-3.4.10/proxy/grpcproxy/register_test.go.orig2	2020-07-17 00:16:20.000000000 +0200
++++ etcd-3.4.10/proxy/grpcproxy/register_test.go	2020-08-10 14:44:31.945142878 +0200
+@@ -22,8 +22,6 @@ import (
+ 	"go.etcd.io/etcd/clientv3/naming"
+ 	"go.etcd.io/etcd/integration"
+ 	"go.etcd.io/etcd/pkg/testutil"
+-
+-	gnaming "google.golang.org/grpc/naming"
+ )
+ 
+ func TestRegister(t *testing.T) {
+@@ -66,7 +64,7 @@ func TestRegister(t *testing.T) {
+ 	}
+ }
+ 
+-func createWatcher(t *testing.T, c *clientv3.Client, prefix string) gnaming.Watcher {
++func createWatcher(t *testing.T, c *clientv3.Client, prefix string) naming.Watcher {
+ 	gr := &naming.GRPCResolver{Client: c}
+ 	watcher, err := gr.Resolve(prefix)
+ 	if err != nil {
+diff -up etcd-3.4.10/vendor/google.golang.org/grpc/naming/naming.go.orig2 etcd-3.4.10/vendor/google.golang.org/grpc/naming/naming.go
