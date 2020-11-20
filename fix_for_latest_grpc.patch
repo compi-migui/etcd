@@ -1,6 +1,6 @@
-diff -up etcd-3.4.10/clientv3/balancer/balancer.go.orig2 etcd-3.4.10/clientv3/balancer/balancer.go
---- etcd-3.4.10/clientv3/balancer/balancer.go.orig2	2020-07-17 00:16:20.000000000 +0200
-+++ etcd-3.4.10/clientv3/balancer/balancer.go	2020-08-10 14:38:46.792286145 +0200
+diff -up etcd-3.4.13/clientv3/balancer/balancer.go.orig2 etcd-3.4.13/clientv3/balancer/balancer.go
+--- etcd-3.4.13/clientv3/balancer/balancer.go.orig2	2020-07-17 00:16:20.000000000 +0200
++++ etcd-3.4.13/clientv3/balancer/balancer.go	2020-08-10 14:38:46.792286145 +0200
 @@ -138,13 +138,10 @@ type baseBalancer struct {
  	picker picker.Picker
  }
@@ -53,9 +53,9 @@ diff -up etcd-3.4.10/clientv3/balancer/balancer.go.orig2 etcd-3.4.10/clientv3/ba
  }
  
  func (bb *baseBalancer) updatePicker() {
-diff -up etcd-3.4.10/clientv3/balancer/picker/err.go.orig2 etcd-3.4.10/clientv3/balancer/picker/err.go
---- etcd-3.4.10/clientv3/balancer/picker/err.go.orig2	2020-07-17 00:16:20.000000000 +0200
-+++ etcd-3.4.10/clientv3/balancer/picker/err.go	2020-08-10 14:38:46.793286144 +0200
+diff -up etcd-3.4.13/clientv3/balancer/picker/err.go.orig2 etcd-3.4.13/clientv3/balancer/picker/err.go
+--- etcd-3.4.13/clientv3/balancer/picker/err.go.orig2	2020-07-17 00:16:20.000000000 +0200
++++ etcd-3.4.13/clientv3/balancer/picker/err.go	2020-08-10 14:38:46.793286144 +0200
 @@ -15,8 +15,6 @@
  package picker
  
@@ -74,9 +74,9 @@ diff -up etcd-3.4.10/clientv3/balancer/picker/err.go.orig2 etcd-3.4.10/clientv3/
 +func (ep *errPicker) Pick(_ balancer.PickInfo) (balancer.PickResult, error) {
 +	return balancer.PickResult{}, ep.err
  }
-diff -up etcd-3.4.10/clientv3/balancer/picker/roundrobin_balanced.go.orig2 etcd-3.4.10/clientv3/balancer/picker/roundrobin_balanced.go
---- etcd-3.4.10/clientv3/balancer/picker/roundrobin_balanced.go.orig2	2020-07-17 00:16:20.000000000 +0200
-+++ etcd-3.4.10/clientv3/balancer/picker/roundrobin_balanced.go	2020-08-10 14:38:46.793286144 +0200
+diff -up etcd-3.4.13/clientv3/balancer/picker/roundrobin_balanced.go.orig2 etcd-3.4.13/clientv3/balancer/picker/roundrobin_balanced.go
+--- etcd-3.4.13/clientv3/balancer/picker/roundrobin_balanced.go.orig2	2020-07-17 00:16:20.000000000 +0200
++++ etcd-3.4.13/clientv3/balancer/picker/roundrobin_balanced.go	2020-08-10 14:38:46.793286144 +0200
 @@ -15,7 +15,6 @@
  package picker
  
@@ -111,9 +111,9 @@ diff -up etcd-3.4.10/clientv3/balancer/picker/roundrobin_balanced.go.orig2 etcd-
 +		Done:    doneFunc,
 +	}, nil
  }
-diff -up etcd-3.4.10/clientv3/naming/grpc.go.orig2 etcd-3.4.10/clientv3/naming/grpc.go
---- etcd-3.4.10/clientv3/naming/grpc.go.orig2	2020-07-17 00:16:20.000000000 +0200
-+++ etcd-3.4.10/clientv3/naming/grpc.go	2020-08-10 14:40:02.425235180 +0200
+diff -up etcd-3.4.13/clientv3/naming/grpc.go.orig2 etcd-3.4.13/clientv3/naming/grpc.go
+--- etcd-3.4.13/clientv3/naming/grpc.go.orig2	2020-07-17 00:16:20.000000000 +0200
++++ etcd-3.4.13/clientv3/naming/grpc.go	2020-08-10 14:40:02.425235180 +0200
 @@ -19,11 +19,10 @@ import (
  	"encoding/json"
  	"fmt"
@@ -208,9 +208,9 @@ diff -up etcd-3.4.10/clientv3/naming/grpc.go.orig2 etcd-3.4.10/clientv3/naming/g
  		if err := json.Unmarshal(kv.Value, &jupdate); err != nil {
  			continue
  		}
-diff -up etcd-3.4.10/clientv3/naming/grpc_test.go.orig2 etcd-3.4.10/clientv3/naming/grpc_test.go
---- etcd-3.4.10/clientv3/naming/grpc_test.go.orig2	2020-07-17 00:16:20.000000000 +0200
-+++ etcd-3.4.10/clientv3/naming/grpc_test.go	2020-08-10 14:40:17.258223394 +0200
+diff -up etcd-3.4.13/clientv3/naming/grpc_test.go.orig2 etcd-3.4.13/clientv3/naming/grpc_test.go
+--- etcd-3.4.13/clientv3/naming/grpc_test.go.orig2	2020-07-17 00:16:20.000000000 +0200
++++ etcd-3.4.13/clientv3/naming/grpc_test.go	2020-08-10 14:40:17.258223394 +0200
 @@ -23,8 +23,6 @@ import (
  	etcd "go.etcd.io/etcd/clientv3"
  	"go.etcd.io/etcd/integration"
@@ -278,9 +278,9 @@ diff -up etcd-3.4.10/clientv3/naming/grpc_test.go.orig2 etcd-3.4.10/clientv3/nam
  		t.Fatalf("expected two updates, got %+v", updates)
  	}
  }
-diff -up etcd-3.4.10/clientv3/naming/naming.go.orig2 etcd-3.4.10/clientv3/naming/naming.go
---- etcd-3.4.10/clientv3/naming/naming.go.orig2	2020-08-10 14:38:46.805286136 +0200
-+++ etcd-3.4.10/clientv3/naming/naming.go	2020-08-10 14:38:46.798286141 +0200
+diff -up etcd-3.4.13/clientv3/naming/naming.go.orig2 etcd-3.4.13/clientv3/naming/naming.go
+--- etcd-3.4.13/clientv3/naming/naming.go.orig2	2020-08-10 14:38:46.805286136 +0200
++++ etcd-3.4.13/clientv3/naming/naming.go	2020-08-10 14:38:46.798286141 +0200
 @@ -0,0 +1,48 @@
 +// Copyright 2020 The etcd and gRPC Authors
 +//
@@ -330,9 +330,9 @@ diff -up etcd-3.4.10/clientv3/naming/naming.go.orig2 etcd-3.4.10/clientv3/naming
 +	// Close closes the Watcher.
 +	Close()
 +}
-diff -up etcd-3.4.10/proxy/grpcproxy/cluster.go.orig2 etcd-3.4.10/proxy/grpcproxy/cluster.go
---- etcd-3.4.10/proxy/grpcproxy/cluster.go.orig2	2020-07-17 00:16:20.000000000 +0200
-+++ etcd-3.4.10/proxy/grpcproxy/cluster.go	2020-08-10 14:38:46.802286138 +0200
+diff -up etcd-3.4.13/proxy/grpcproxy/cluster.go.orig2 etcd-3.4.13/proxy/grpcproxy/cluster.go
+--- etcd-3.4.13/proxy/grpcproxy/cluster.go.orig2	2020-07-17 00:16:20.000000000 +0200
++++ etcd-3.4.13/proxy/grpcproxy/cluster.go	2020-08-10 14:38:46.802286138 +0200
 @@ -27,7 +27,6 @@ import (
  	pb "go.etcd.io/etcd/etcdserver/etcdserverpb"
  
@@ -380,9 +380,9 @@ diff -up etcd-3.4.10/proxy/grpcproxy/cluster.go.orig2 etcd-3.4.10/proxy/grpcprox
  				delete(cp.umap, ups[i].Addr)
  			}
  		}
-diff -up etcd-3.4.10/proxy/grpcproxy/register.go.orig2 etcd-3.4.10/proxy/grpcproxy/register.go
---- etcd-3.4.10/proxy/grpcproxy/register.go.orig2	2020-07-17 00:16:20.000000000 +0200
-+++ etcd-3.4.10/proxy/grpcproxy/register.go	2020-08-10 14:38:46.804286137 +0200
+diff -up etcd-3.4.13/proxy/grpcproxy/register.go.orig2 etcd-3.4.13/proxy/grpcproxy/register.go
+--- etcd-3.4.13/proxy/grpcproxy/register.go.orig2	2020-07-17 00:16:20.000000000 +0200
++++ etcd-3.4.13/proxy/grpcproxy/register.go	2020-08-10 14:38:46.804286137 +0200
 @@ -23,7 +23,6 @@ import (
  	"go.etcd.io/etcd/clientv3/naming"
  
@@ -400,9 +400,9 @@ diff -up etcd-3.4.10/proxy/grpcproxy/register.go.orig2 etcd-3.4.10/proxy/grpcpro
  		return nil, err
  	}
  
-diff -up etcd-3.4.10/proxy/grpcproxy/register_test.go.orig2 etcd-3.4.10/proxy/grpcproxy/register_test.go
---- etcd-3.4.10/proxy/grpcproxy/register_test.go.orig2	2020-07-17 00:16:20.000000000 +0200
-+++ etcd-3.4.10/proxy/grpcproxy/register_test.go	2020-08-10 14:44:31.945142878 +0200
+diff -up etcd-3.4.13/proxy/grpcproxy/register_test.go.orig2 etcd-3.4.13/proxy/grpcproxy/register_test.go
+--- etcd-3.4.13/proxy/grpcproxy/register_test.go.orig2	2020-07-17 00:16:20.000000000 +0200
++++ etcd-3.4.13/proxy/grpcproxy/register_test.go	2020-08-10 14:44:31.945142878 +0200
 @@ -22,8 +22,6 @@ import (
  	"go.etcd.io/etcd/clientv3/naming"
  	"go.etcd.io/etcd/integration"
@@ -421,4 +421,4 @@ diff -up etcd-3.4.10/proxy/grpcproxy/register_test.go.orig2 etcd-3.4.10/proxy/gr
  	gr := &naming.GRPCResolver{Client: c}
  	watcher, err := gr.Resolve(prefix)
  	if err != nil {
-diff -up etcd-3.4.10/vendor/google.golang.org/grpc/naming/naming.go.orig2 etcd-3.4.10/vendor/google.golang.org/grpc/naming/naming.go
+diff -up etcd-3.4.13/vendor/google.golang.org/grpc/naming/naming.go.orig2 etcd-3.4.13/vendor/google.golang.org/grpc/naming/naming.go
